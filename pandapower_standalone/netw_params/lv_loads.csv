@@ -1,0 +1,4 @@
+load_name;bus;s;cosphi;controllable;max_p_mw;min_p_mw;scaling
+Load_1;Bus_1;0.05;0.97;false;0.25;0;0.5
+Heat Pump;Bus_1;0.002;1;bool;0.25;0.002;1
+Load_2;Bus_2;0.02;0.97;false;0.2;0;0.7

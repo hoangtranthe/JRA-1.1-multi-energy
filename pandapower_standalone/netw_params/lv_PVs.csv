@@ -1,0 +1,3 @@
+PV_name;bus;p;q;type;scaling
+PV_1;Bus_1;0.0;0.0;PV;1.4
+PV_2;Bus_2;0.0;0.0;PV;0.8

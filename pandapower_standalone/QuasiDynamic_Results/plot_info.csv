@@ -1,0 +1,5 @@
+id;component;subfolder;filename;xlabel;ylabel;title;variable
+0;bus;res_bus;vm_pu.csv;Time, hour; Voltage, p.u.; Grid voltage;vm_pu
+1;line;res_line;loading_percent.csv;Time, hour;Line loading, %; Line loading; loading_percent
+2;load;res_load;p_mw.csv;Time, hour;Active power, MW;Load consumption; p_mw
+3;sgen;res_sgen;p_mw.csv;Time, hour; Active power, MW;PV generation;p_mw

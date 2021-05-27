@@ -10,7 +10,7 @@ import time as t_time
 import datetime
 import logging
 
-logging.basicConfig(filename='../cosimulation_logging.log', filemode='w', level=logging.CRITICAL)
+logging.basicConfig(filename='../../ts_player/cosimulation_logging.log', filemode='w', level=logging.CRITICAL)
 
 scenario_start_time = t_time.time()
 
@@ -35,7 +35,7 @@ simulators_dict = {}
 entities_dict = {}
 
 
-consumer_demand_series = pd.read_csv('./resources/heat_demand_load_profile_feb_to_march_2019.csv', index_col=0, parse_dates=True)
+consumer_demand_series = pd.read_csv('resources/heat_demand_load_profile_feb_to_march_2019.csv', index_col=0, parse_dates=True)
 consumer_t_start = '2019-03-02 00:00:00'
 
 ###

@@ -22,10 +22,10 @@ META = {
                                         'attrs': [
                                                   # Input
                                                   'T_tank_forward',  # Supply temp of storage unit
-                                                  'mdot_tank_in',  # Mass flow injected by tank
-                                                  'mdot_grid',  # Mass flow injected by the grid
-                                                  'mdot_cons1',  # Mass flow at consumer 1
-                                                  'mdot_cons2',  # Mass flow at consumer 2
+                                                  'mdot_tank_in_set',  # Mass flow injected by tank
+                                                  'mdot_grid_set',  # Mass flow injected by the grid
+                                                  'mdot_cons1_set',  # Mass flow at consumer 1
+                                                  'mdot_cons2_set',  # Mass flow at consumer 2
                                                   'Qdot_evap',  # Heat consumption of heat pump evaporator
                                                   'Qdot_cons1',  # Heat consumption of consumer 1
                                                   'Qdot_cons2',  # Heat consumption of consumer 2
@@ -38,6 +38,10 @@ META = {
                                                   'T_supply_cons2',  # Supply temperature at consumer 2
                                                   'T_return_cons1',  # Return temperature at consumer 1
                                                   'T_return_cons2',  # Return temperature at consumer 2
+                                                  'mdot_tank_in',  # Mass flow injected by tank
+                                                  'mdot_grid',  # Mass flow injected by the grid
+                                                  'mdot_cons1',  # Mass flow at consumer 1
+                                                  'mdot_cons2',  # Mass flow at consumer 2
                                                   ],
                                         },
                    },
@@ -57,8 +61,9 @@ class DHNetworkSimulator(Simulator):
         self.eid_counters = {}
         self.simulators: Dict[DHNetwork] = {}
         self.entityparams = {}
-        self.output_vars = {'T_return_tank', 'T_evap_in', 'T_return_grid', 'T_supply_cons1', 'T_supply_cons2', 'T_return_cons1', 'T_return_cons2', 'store'}
-        self.input_vars = {'mdot_grid', 'T_tank_forward', 'mdot_tank_in', 'mdot_cons1', 'mdot_cons2', 'Qdot_evap', 'Qdot_cons1', 'Qdot_cons2'}
+        self.output_vars = {'T_return_tank', 'T_evap_in', 'T_return_grid', 'T_supply_cons1', 'T_supply_cons2', 'T_return_cons1', 'T_return_cons2',
+                            'mdot_tank_in', 'mdot_grid', 'mdot_cons1', 'mdot_cons2'}
+        self.input_vars = {'mdot_grid_set', 'T_tank_forward', 'mdot_tank_in_set', 'mdot_cons1_set', 'mdot_cons2_set', 'Qdot_evap', 'Qdot_cons1', 'Qdot_cons2'}
 
     def init(self, sid, step_size=10, eid_prefix="DHNetwork"):
 

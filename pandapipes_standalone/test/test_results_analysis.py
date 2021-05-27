@@ -55,16 +55,6 @@ sc_monitor_store.close()
 # Plotting
 ###
 
-plt_dict_simple= {
-    'plt1' : ['mdot_1_supply', 'mdot_3_supply'],
-    'Temperatures' : ['T_tank_target', 'T_avg', 'T_supply', 'T_return'],
-    'Power' : ['Qdot_cond', 'P_effective', 'P_e_max', 'P_electric_heater']
-}
-plt_dict_complete = {
-    'plt1' : ['eta_hp', 'mdot_1_supply', 'mdot_2_supply','mdot_3_supply' ],
-    'Temperatures' : ['T_tank_target', 'T_hot', 'T_avg', 'T_cold', 'T_supply', 'T_return', 'T_cond_out', 'T_cond_in'],
-    'Power' : ['Q_HP_max', 'Q_HP_set', 'Qdot_cond', 'P_hp_e_max', 'P_effective', 'P_e_max', 'P_electric_heater'] #
-}
 plt_dict_new = {
     'mdot': ['mdot_ch_in', 'mdot_dis_out','mdot_evap_in', 'mdot_cond_out'],
     'Temp' : ['T_hot','T_avg','T_cold','T_cond_out','T_return_tank','T_return_grid'],
@@ -72,12 +62,16 @@ plt_dict_new = {
 }
 
 plt_dict_network = {
-    'mdot': ['mdot_cons1', 'mdot_cons2', 'mdot_grid', 'mdot_tank_in'],
-    'Temperatures' : ['T_supply_cons1', 'T_supply_cons2', 'T_return_cons1', 'T_return_cons2', 'T_evap_in','T_evap_out','T_out'],
-    'Power': ['Qdot_cons1', 'Qdot_cons2', 'Qdot_evap',]
+    'mdot': [#'mdot_cons1', 'mdot_cons1_set',
+             #'mdot_cons2', 'mdot_cons2_set',
+             #'mdot_grid', 'mdot_grid_set',
+             'mdot_tank_in', 'mdot_tank_in_set',
+             ],
+    'Temperatures' : ['T_hot','T_avg','T_cold','T_cond_out','T_return_tank','T_return_grid'],
+    #'Power': ['Qdot_cons1', 'Qdot_cons2', 'Qdot_evap',]
 }
 
-plt_dict = plt_dict_new
+plt_dict = plt_dict_network
 
 plt.ion()
 plt.show()

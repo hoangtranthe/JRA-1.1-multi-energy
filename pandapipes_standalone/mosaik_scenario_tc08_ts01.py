@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 import time as t_time
 import datetime
 import logging
+import sys
 
 logging.basicConfig(filename='cosimulation_logging.log', filemode='w', level=logging.DEBUG)
 
@@ -52,7 +53,7 @@ PHYSICAL_STEP_SIZE = STEP_SIZE  # Physical evolution [s]
 CONTROL_STEP_SIZE = STEP_SIZE  # Flow control [s]
 PIPEFLOW_STEP_SIZE = 60
 OPTIMIZER_STEP_SIZE = STEP_SIZE  # Used for MPC controller [s]
-END = 12 * 60 * 60
+END = 72 * 60 * 60
 
 # # Set which day we are looking at.
 consumer_demand_series = pd.read_csv('./resources/heat/tc08ts01/distorted_heat_demand_load_profiles.csv', index_col=0, parse_dates=True)
@@ -199,12 +200,12 @@ entities['sc_monitor'] = simulators['collector'].Collector()
 
 # physical coupling
 # simple flow control
-world.connect(entities['simple_controller'], entities['dh_network'], ('mdot_1_supply', 'mdot_grid'))
-world.connect(entities['simple_controller'], entities['dh_network'], ('mdot_3_supply', 'mdot_tank_in'))
+world.connect(entities['simple_controller'], entities['dh_network'], ('mdot_1_supply', 'mdot_grid_set'))
+world.connect(entities['simple_controller'], entities['dh_network'], ('mdot_3_supply', 'mdot_tank_in_set'))
 
 # dh network
-world.connect(entities['hex_consumer1'], entities['dh_network'], ('mdot_hex_out', 'mdot_cons1'))
-world.connect(entities['hex_consumer2'], entities['dh_network'], ('mdot_hex_out', 'mdot_cons2'))
+world.connect(entities['hex_consumer1'], entities['dh_network'], ('mdot_hex_out', 'mdot_cons1_set'))
+world.connect(entities['hex_consumer2'], entities['dh_network'], ('mdot_hex_out', 'mdot_cons2_set'))
 
 
 # Flexheat system
@@ -274,6 +275,7 @@ collector_connections = {
         'P_effective', 'eta_hp'],
     'dh_network': [
         'T_tank_forward', 'T_supply_cons1', 'T_supply_cons2', 'T_return_cons1', 'T_return_cons2','T_return_tank','T_return_grid',
+        'mdot_cons1_set', 'mdot_cons2_set', 'mdot_grid_set', 'mdot_tank_in_set',
         'mdot_cons1', 'mdot_cons2', 'mdot_grid', 'mdot_tank_in',
         'Qdot_cons1', 'Qdot_cons2', 'Qdot_evap'
     ],

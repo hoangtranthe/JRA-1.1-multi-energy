@@ -7,6 +7,7 @@
 
 import matplotlib.pyplot as plt
 import pandas as pd
+import sys
 from dataclasses import dataclass, field
 import numpy as np
 import math
@@ -19,6 +20,13 @@ from pandapower import pandapowerNet
 from .valve_control import CtrlValve
 import pandapipes.plotting as plot
 from scipy.interpolate import interp1d
+
+# Do not print python UserWarnings
+if not sys.warnoptions:
+	import warnings
+
+# Global
+OUTPUT_PLOTTING_PERIOD = 60 * 60 * 4 - 60
 
 @dataclass
 class DHNetwork:
@@ -39,16 +47,18 @@ class DHNetwork:
 	CP_WATER: float = 4186  # Specific heat capacity of water [J/(kgK)]
 
 	# Input
-	mdot_cons1: float = 4  # Mass flow at consumer 1 [kg/s]
-	mdot_cons2: float = 4  # Mass flow at consumer 2 [kg/s]
-	mdot_bypass: float = 0.5  # Mass flow through bypass (const.) [kg/s]
-	T_tank_forward: float = 70  # Supply temp of storage unit [degC]
-	mdot_grid: float = 7.5  # Mass flow injected by grid [kg/s]
-	mdot_tank_in: float = 0  # Mass flow injected in the tank [kg/s]
-	mdot_tank_out: float = - mdot_tank_in  # Mass flow supplied by the tank [kg/s]
 	Qdot_evap: float = 0  # Heat consumption of heat pump evaporator [kW]
 	Qdot_cons1: float = 500  # Heat consumption of consumer 1 [kW]
 	Qdot_cons2: float = 500  # Heat consumption of consumer 2 [kW]
+	T_tank_forward: float = 70  # Supply temp of storage unit [degC]
+
+	mdot_cons1_set: float = 4  # Mass flow at consumer 1 [kg/s]
+	mdot_cons2_set: float = 4  # Mass flow at consumer 2 [kg/s]
+	mdot_bypass_set: float = 0.5  # Mass flow through bypass (const.) [kg/s]
+	mdot_grid_set: float = 7.5  # Mass flow injected by grid [kg/s]
+	mdot_tank_in_set: float = 0  # Mass flow injected in the tank [kg/s]
+	mdot_tank_out_set: float = - mdot_tank_in_set  # Mass flow supplied by the tank [kg/s]
+
 
 	# Variables
 	T_return_tank: float = 40  # Return temperature of the storage unit [degC]
@@ -58,6 +68,12 @@ class DHNetwork:
 	T_supply_cons2: float = 70  # Supply temperature at consumer 2 [degC]
 	T_return_cons1: float = 40  # Return temperature at consumer 1 [degC]
 	T_return_cons2: float = 40  # Return temperature at consumer 2 [degC]
+	mdot_cons1: float = 4  # Mass flow at consumer 1 [kg/s]
+	mdot_cons2: float = 4  # Mass flow at consumer 2 [kg/s]
+	mdot_bypass: float = 0.5  # Mass flow through bypass (const.) [kg/s]
+	mdot_grid: float = 7.5  # Mass flow injected by grid [kg/s]
+	mdot_tank_in: float = 0  # Mass flow injected in the tank [kg/s]
+	mdot_tank_out: float = - mdot_tank_in  # Mass flow supplied by the tank [kg/s]
 
 	# Internal variables
 	plot_results_enabled: bool = False  # calculates static and dynamic heat flow and compares both results (only when dynamic temp flow enabled!)
@@ -79,9 +95,7 @@ class DHNetwork:
 	def __post_init__(self):
 		self._create_network()
 		self._init_output_store()
-
-		# Set log level to errors only
-		# pp.set_logger_level_pipeflow('CRITICAL')  # no impact on run_control()
+		warnings.filterwarnings("ignore", message="Pipeflow converged, however, the results are phyisically incorrect as pressure is negative at nodes*")
 
 	def _init_output_store(self):
 		# Init output storage
@@ -95,6 +109,7 @@ class DHNetwork:
 
 	def step_single(self, time):
 		j = self.junction
+		v = self.valve
 
 		# Set actual time
 		self.cur_t = time
@@ -103,7 +118,7 @@ class DHNetwork:
 		self._update()
 
 		# Run hydraulic flow (steady-state)
-		run_control(self.net, max_iter=100)
+		self.run_hydraulic_control()
 
 		if not self.dynamic_temp_flow_enabled:
 			self._run_static_pipeflow()
@@ -112,7 +127,7 @@ class DHNetwork:
 
 		# Plot results
 		if self.plot_results_enabled:
-			if self.cur_t == 60 * 60 * 4 - 60:
+			if self.cur_t == OUTPUT_PLOTTING_PERIOD:
 				self._plot_outputs()
 
 		# Set output variables
@@ -123,6 +138,23 @@ class DHNetwork:
 		self.T_supply_cons2 = round(self.net.res_junction.at[j.index('n7s'), 't_k'] - 273.15, 2)
 		self.T_return_cons1 = round(self.net.res_junction.at[j.index('n5r'), 't_k'] - 273.15, 2)
 		self.T_return_cons2 = round(self.net.res_junction.at[j.index('n7r'), 't_k'] - 273.15, 2)
+
+		self.mdot_cons1 = round(self.net.res_valve.at[v.index('sub_v1'), 'mdot_from_kg_per_s'], 2)
+		self.mdot_cons2 = round(self.net.res_valve.at[v.index('sub_v2'), 'mdot_from_kg_per_s'], 2)
+		self.mdot_bypass = round(self.net.res_valve.at[v.index('bypass'), 'mdot_from_kg_per_s'], 2)
+		self.mdot_grid = round(self.net.res_valve.at[v.index('grid_v1'), 'mdot_from_kg_per_s'], 2)
+		self.mdot_tank_out = round(self.net.res_valve.at[v.index('tank_v1'), 'mdot_from_kg_per_s'], 2)
+		self.mdot_tank_in = - self.mdot_tank_out
+
+	def run_hydraulic_control(self):
+		# Ignore user warnings of control
+		try:
+			run_control(self.net, max_iter=100)
+
+		except:
+			# Throw UserWarning
+			warnings.warn(f'ControllerNotConverged: Maximum number of iterations per controller is reached at time t={self.cur_t}.', UserWarning)
+
 
 	def _run_static_pipeflow(self):
 		pp.pipeflow(self.net, transient=False, mode="all", max_iter=100, run_control=True, heat_transfer=True)
@@ -344,23 +376,23 @@ class DHNetwork:
 		source = self.source
 		v = self.valve
 
-		self.mdot_tank_out = - self.mdot_tank_in
-		self.mdot_grid = self.mdot_cons1 + self.mdot_cons2 + self.mdot_bypass - self.mdot_tank_out
+		self.mdot_tank_out_set = - self.mdot_tank_in_set
+		self.mdot_grid_set = self.mdot_cons1_set + self.mdot_cons2_set + self.mdot_bypass_set - self.mdot_tank_out_set
 
 		# Update grid mass flow
-		self.net.sink.at[sink.index('sink_grid'), 'mdot_kg_per_s'] = self.mdot_grid
+		self.net.sink.at[sink.index('sink_grid'), 'mdot_kg_per_s'] = self.mdot_grid_set
 
 		# Update controller(s)
-		self.net.controller.at[ctrl.index('bypass_ctrl'), 'object'].set_mdot_setpoint(self.mdot_bypass)
-		self.net.controller.at[ctrl.index('hex1_ctrl'), 'object'].set_mdot_setpoint(self.mdot_cons1)
-		self.net.controller.at[ctrl.index('hex2_ctrl'), 'object'].set_mdot_setpoint(self.mdot_cons2)
-		self.net.controller.at[ctrl.index('grid_ctrl'), 'object'].set_mdot_setpoint(self.mdot_grid)
+		self.net.controller.at[ctrl.index('bypass_ctrl'), 'object'].set_mdot_setpoint(self.mdot_bypass_set)
+		self.net.controller.at[ctrl.index('hex1_ctrl'), 'object'].set_mdot_setpoint(self.mdot_cons1_set)
+		self.net.controller.at[ctrl.index('hex2_ctrl'), 'object'].set_mdot_setpoint(self.mdot_cons2_set)
+		self.net.controller.at[ctrl.index('grid_ctrl'), 'object'].set_mdot_setpoint(self.mdot_grid_set)
 
 		# Update tank
 		if self.tank_installed:
-			self.net.sink.at[sink.index('sink_tank'), 'mdot_kg_per_s'] = self.mdot_tank_out
+			self.net.sink.at[sink.index('sink_tank'), 'mdot_kg_per_s'] = self.mdot_tank_out_set
 			self.net.ext_grid.at[source.index('supply_tank'), 't_k'] = self.T_tank_forward + 273.15
-			self.net.controller.at[ctrl.index('tank_ctrl1'), 'object'].set_mdot_setpoint(self.mdot_tank_out)
+			self.net.controller.at[ctrl.index('tank_ctrl1'), 'object'].set_mdot_setpoint(self.mdot_tank_out_set)
 
 		# Update load
 		self.net.heat_exchanger.at[hex.index('hex1'), 'qext_w'] = self.Qdot_cons1 * 1000
@@ -559,11 +591,11 @@ class DHNetwork:
 		# create load flow control
 		CtrlValve(net=net, gid=v.index('bypass'), gain=-2000,
 				  # data_source=data_source, profile_name='bypass',
-				  level=1, order=1, tol=0.1, name='bypass_ctrl')
-		CtrlValve(net=net, gid=v.index('sub_v1'), gain=-50,
+				  level=1, order=1, tol=0.25, name='bypass_ctrl')
+		CtrlValve(net=net, gid=v.index('sub_v1'), gain=-100,
 				  #data_source=data_source, profile_name='hex1',
 				  level=1, order=2, tol=0.1, name='hex1_ctrl')
-		CtrlValve(net=net, gid=v.index('sub_v2'), gain=-50,
+		CtrlValve(net=net, gid=v.index('sub_v2'), gain=-100,
 				  # data_source=data_source, profile_name='hex2',
 				  level=1, order=3, tol=0.1, name='hex2_ctrl')
 

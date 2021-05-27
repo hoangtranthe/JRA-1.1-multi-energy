@@ -29,6 +29,7 @@ class SimpleFlexHeatController:
 
 	## Internal Vars
 	mdot_min: int = 0.11  # Minimum forward mass flow
+	MINIMUM_HEAT_SUPPLY_GRID_SHARE = 0.5  # Share of load supplied by the external grid
 
 	## Output
 	mdot_1_supply: float = 0.0  # Supply 3 way valve mass flow at port 1 - [kg/s]
@@ -68,16 +69,11 @@ class SimpleFlexHeatController:
 
 		elif self.state == 3:  # Mode 3: Discharge the tank, hp off
 			self.mdot_1_supply = self.mdot_min
-			self.Q_HP_set = 0
 			self.mdot_HP_out = 0
 
-		elif self.state == 4:  # Mode 4: Discharge the tank, hp on
-			self.mdot_1_supply = self.mdot_min
-			self.mdot_HP_out = -3.5
-
-		elif self.state == 6:  # Mode 4: Discharge the tank, hp on
-			self.mdot_1_supply = - self.mdot_2_supply / 2
-			self.mdot_HP_out = -3.5
+		elif self.state == 5:  # Mode 4: Tank support the grid, hp off
+			self.mdot_1_supply = - self.mdot_2_supply * self.MINIMUM_HEAT_SUPPLY_GRID_SHARE
+			self.mdot_HP_out = 0
 
 		self.mdot_3_supply = -(self.mdot_1_supply + self.mdot_2_supply)
 
@@ -91,14 +87,9 @@ class SimpleFlexHeatController:
 			if self.T_tank_hot < self.T_tank_min:
 				self.state = 2  # Mode 1: External grid suppies, tank inactive
 
-		# elif self.state is 1:
-		# 	#if self.T_hp_forward > self.T_hp_min:
-		# 	if self.state is state_old:
-		# 		self.state = 2  # Mode 2: Charge the tank, external supply
-
 		elif self.state is 2:  # Mode 2: Charge the tank, external supply
 			if self.T_tank_hot > self.T_tank_max:
-				self.state = 3  # Mode 3: Discharge the tank, hp off
+				self.state = 5  # Mode 3: Discharge the tank, hp off
 
 		if self.state != state_old:
 			print(f"Controller state changed from {state_old} to {self.state}")

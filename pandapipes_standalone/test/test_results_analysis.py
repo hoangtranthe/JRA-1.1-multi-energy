@@ -64,7 +64,7 @@ plt_dict_new = {
 plt_dict_network = {
     'mdot': [#'mdot_cons1', 'mdot_cons1_set',
              #'mdot_cons2', 'mdot_cons2_set',
-             #'mdot_grid', 'mdot_grid_set',
+             'mdot_grid', 'mdot_grid_set',
              'mdot_tank_in', 'mdot_tank_in_set',
              ],
     'Temperatures' : ['T_hot','T_avg','T_cold','T_cond_out','T_return_tank','T_return_grid'],

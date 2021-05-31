@@ -1,0 +1,13 @@
+seaborn
+pandas
+tqdm
+numpy
+pandapower
+pandapipes
+sklearn
+mosaik
+python-igraph
+dataclasses
+tables
+fmipp
+gurobipy

@@ -466,9 +466,11 @@ class DHNetwork:
 		net = self.net
 		j = self.junction
 
+		l01 = 0.5
+
 		# supply pipes
-		pp.create_pipe_from_parameters(net, from_junction=j.index('n1s'), to_junction=j.index('n2s'), length_km=2.0,
-									   diameter_m=0.1, k_mm=0.01, sections=20, alpha_w_per_m2k=1.5,
+		pp.create_pipe_from_parameters(net, from_junction=j.index('n1s'), to_junction=j.index('n2s'), length_km=l01,
+									   diameter_m=0.1, k_mm=0.01, sections=1, alpha_w_per_m2k=1.5,
 									   text_k=273.15+8, name="l1s")
 		pp.create_pipe_from_parameters(net, from_junction=j.index('n3sv'), to_junction=j.index('n3s'), length_km=0.01,
 									   diameter_m=0.1, k_mm=0.01, sections=1, alpha_w_per_m2k=1.5,
@@ -480,7 +482,7 @@ class DHNetwork:
 									   diameter_m=0.1, k_mm=0.01, sections=1, alpha_w_per_m2k=1.5,
 									   text_k=273.15 + 8, name="l3s")
 		pp.create_pipe_from_parameters(net, from_junction=j.index('n4s'), to_junction=j.index('n6s'), length_km=0.5,
-									   diameter_m=0.1, k_mm=0.01, sections=10, alpha_w_per_m2k=1.5,
+									   diameter_m=0.1, k_mm=0.01, sections=1, alpha_w_per_m2k=1.5,
 									   text_k=273.15 + 8, name="l4s")
 		pp.create_pipe_from_parameters(net, from_junction=j.index('n6s'), to_junction=j.index('n7sv'), length_km=0.01,
 									   diameter_m=0.1, k_mm=0.01, sections=1, alpha_w_per_m2k=1.5,
@@ -490,8 +492,8 @@ class DHNetwork:
 									   text_k=273.15 + 8, name="l6s")
 
 		# return pipes
-		pp.create_pipe_from_parameters(net, from_junction=j.index('n2r'), to_junction=j.index('n1r'), length_km=2.0,
-									   diameter_m=0.1, k_mm=0.01, sections=20, alpha_w_per_m2k=1.5,
+		pp.create_pipe_from_parameters(net, from_junction=j.index('n2r'), to_junction=j.index('n1r'), length_km=l01,
+									   diameter_m=0.1, k_mm=0.01, sections=1, alpha_w_per_m2k=1.5,
 									   text_k=273.15+8, name="l1r")
 		pp.create_pipe_from_parameters(net, from_junction=j.index('n3r'), to_junction=j.index('n3r_tank'), length_km=0.01,
 									   diameter_m=0.1, k_mm=0.01, sections=1, alpha_w_per_m2k=1.5,
@@ -503,7 +505,7 @@ class DHNetwork:
 									   diameter_m=0.1, k_mm=0.01, sections=1, alpha_w_per_m2k=1.5,
 									   text_k=273.15 + 8, name="l3r")
 		pp.create_pipe_from_parameters(net, from_junction=j.index('n6r'), to_junction=j.index('n4r'), length_km=0.5,
-									   diameter_m=0.1, k_mm=0.01, sections=10, alpha_w_per_m2k=1.5,
+									   diameter_m=0.1, k_mm=0.01, sections=5, alpha_w_per_m2k=1.5,
 									   text_k=273.15 + 8, name="l4r")
 		pp.create_pipe_from_parameters(net, from_junction=j.index('n7r'), to_junction=j.index('n6r'), length_km=0.01,
 									   diameter_m=0.1, k_mm=0.01, sections=1, alpha_w_per_m2k=1.5,
@@ -582,11 +584,11 @@ class DHNetwork:
 		# create supply flow control
 		CtrlValve(net=net, gid=v.index('tank_v1'), gain=-3000,
 				  # data_source=data_source, profile_name='tank',
-				  level=0, order=1, tol=0.5, name='tank_ctrl1')
+				  level=0, order=1, tol=0.25, name='tank_ctrl1')
 
 		CtrlValve(net=net, gid=v.index('grid_v1'), gain=-3000,
 				  # data_source=data_source, profile_name='tank',
-				  level=0, order=2, tol=0.5, name='grid_ctrl')
+				  level=0, order=2, tol=0.25, name='grid_ctrl')
 
 		# create load flow control
 		CtrlValve(net=net, gid=v.index('bypass'), gain=-2000,

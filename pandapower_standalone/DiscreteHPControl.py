@@ -59,11 +59,11 @@ class DiscreteHPControl(HPController):
                 self.hp_p_mw = hp_p_setpoint_mw
 
             elif hp_p_setpoint_mw < self.hp_min_p_mw:
-                self.hp_p_mw = self.hp_min_p_mw
+                self.hp_p_mw = 0
 
 
-        elif delta_v_meas_pu - self.delta_vm_lower_pu < -self.deadband and self.hp_p_mw == self.hp_min_p_mw:
-            self.hp_p_mw = self.hp_min_p_mw
+        elif delta_v_meas_pu - self.delta_vm_lower_pu < -self.deadband and self.hp_p_mw <= self.hp_min_p_mw:
+            self.hp_p_mw = 0
 
         net[self.load].at[self.hid, "p_mw"] = self.hp_p_mw
 
@@ -82,7 +82,7 @@ class DiscreteHPControl(HPController):
         if delta_v_meas_pu > self.delta_vm_upper_pu + self.deadband and net[self.load].at[self.hid, "p_mw"] == self.hp_max_p_mw:
             return True
 
-        elif delta_v_meas_pu < self.delta_vm_lower_pu - self.deadband and net[self.load].at[self.hid, "p_mw"] == self.hp_min_p_mw:
+        elif delta_v_meas_pu < self.delta_vm_lower_pu - self.deadband and net[self.load].at[self.hid, "p_mw"] == 0:
             return True
 
         return self.delta_vm_lower_pu - self.deadband <= delta_v_meas_pu <= self.delta_vm_upper_pu + self.deadband

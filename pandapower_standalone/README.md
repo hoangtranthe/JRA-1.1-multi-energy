@@ -17,4 +17,5 @@ To run the simulation, issue the following command:
 > python main.py
 ```
 
-This will generate ..., which can be analysed using ...
+Results can be found in your local temp folder ......
+Progress: | ....................... | 100.0 % Complete

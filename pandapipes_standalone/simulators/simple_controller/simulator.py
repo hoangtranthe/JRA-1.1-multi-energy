@@ -27,9 +27,12 @@ class SimpleFlexHeatController:
 	T_tank_hot: float = 50  # Average tank temperature - [degC]
 	T_hp_forward: float = 70  # Heat pump output temperature - [degC]
 
+	hp_on_request: bool = False  # Voltage control request for under voltage (toggle) and time period (in sec)
+	hp_off_request: bool = False  # Voltage control request for over voltage (toggle) and time period (in sec)
+
 	## Internal Vars
 	mdot_min: int = 0.11  # Minimum forward mass flow
-	MINIMUM_HEAT_SUPPLY_GRID_SHARE = 0.5  # Share of load supplied by the external grid
+	MINIMUM_HEAT_SUPPLY_GRID_SHARE = 0.5  # Share of load supplied by the external grid (deprecated)
 
 	## Output
 	mdot_1_supply: float = 0.0  # Supply 3 way valve mass flow at port 1 - [kg/s]
@@ -71,9 +74,17 @@ class SimpleFlexHeatController:
 			self.mdot_1_supply = self.mdot_min
 			self.mdot_HP_out = 0
 
-		elif self.state == 5:  # Mode 4: Tank support the grid, hp off
-			self.mdot_1_supply = - self.mdot_2_supply * self.MINIMUM_HEAT_SUPPLY_GRID_SHARE
+		elif self.state == 4:  # Mode 4: Discharge the tank, hp on
+			self.mdot_1_supply = self.mdot_min
+			self.mdot_HP_out = -3.5
+
+		elif self.state == 5:  # Mode 5: Tank supports (with fixed mass flow) the grid, hp off
+			self.mdot_1_supply = - self.mdot_2_supply - 2.0
 			self.mdot_HP_out = 0
+
+		elif self.state == 6:  # Mode 6: Tank supports (with fixed mass flow) the grid, hp on
+			self.mdot_1_supply = - self.mdot_2_supply - 2.0
+			self.mdot_HP_out = -3.5
 
 		self.mdot_3_supply = -(self.mdot_1_supply + self.mdot_2_supply)
 
@@ -83,16 +94,32 @@ class SimpleFlexHeatController:
 
 	def _update_state(self):
 		state_old = self.state
-		if self.state is not 2:
-			if self.T_tank_hot < self.T_tank_min:
+		if self.state is 1:
+			if not self.hp_off_request:
 				self.state = 2  # Mode 1: External grid suppies, tank inactive
+
+		if self.state is 6:
+			if not self.hp_on_request:
+				self.state = 5  # Mode 5: Tank support, hp off
+
+		if self.state is 5:
+			if self.T_tank_hot < self.T_tank_min:
+				if self.hp_off_request:
+					self.state = 1  # Mode 1: External grid suppies, tank inactive
+				else:
+					self.state = 2  # Mode 2: Grid suppies, tank inactive, hp on
 
 		elif self.state is 2:  # Mode 2: Charge the tank, external supply
 			if self.T_tank_hot > self.T_tank_max:
-				self.state = 5  # Mode 3: Discharge the tank, hp off
+				if self.hp_on_request:
+					self.state = 6  # Mode 3: Discharge the tank, hp on
+				else:
+					self.state = 5
+
 
 		if self.state != state_old:
 			print(f"Controller state changed from {state_old} to {self.state}")
+			timer = 0
 
 if __name__ == '__main__':
 

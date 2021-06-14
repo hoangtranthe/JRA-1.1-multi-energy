@@ -245,7 +245,7 @@ class DHNetwork:
 		plt_dict = {
 			# 'temp': ['n1s', 'n2s', 'n3s', 'n3s_tank', 'n4s', 'n5s', 'n6s', 'n7s', 'n8s'],
 			'temp': ['n3s', 'n5s', 'n4s', 'n6s', 'n7s'],
-			'dt': ['l2s', 'l3s', 'l4s', 'l5s', 'l6s'],
+			#'dt': ['l2s', 'l3s', 'l4s', 'l5s', 'l6s'],
 			'mdot': ['l2s', 'l3s', 'l4s', 'l5s', 'l6s'],
 		}
 

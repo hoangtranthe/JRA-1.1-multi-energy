@@ -13,13 +13,13 @@ import numpy as np
 import math
 import pandapipes as pp
 from pandapower.timeseries import DFData
-from typing import List, Dict, Optional, Set, Tuple
-import pandapower.control as control
+from typing import Dict
 import pandapipes.control.run_control as run_control
 from pandapower import pandapowerNet
-from .valve_control import CtrlValve
 import pandapipes.plotting as plot
-from scipy.interpolate import interp1d
+from .utils.valve_control import CtrlValve
+import json
+from .utils.utils import *
 
 # Do not print python UserWarnings
 if not sys.warnoptions:
@@ -61,7 +61,7 @@ class DHNetwork:
 
 
 	# Variables
-	T_return_tank: float = 40  # Return temperature of the storage unit [degC]
+	T_return_tank: float = 40  # Return temperature into the storage unit [degC]
 	T_evap_in: float = 40  # Return temperature towards the heat pump evaporator [degC]
 	T_return_grid: float = 40  # Return temperature of the external grid [degC]
 	T_supply_cons1: float = 70  # Supply temperature at consumer 1 [degC]
@@ -80,6 +80,8 @@ class DHNetwork:
 	compare_to_static_results: bool = False  # calculates static and dynamic heat flow and compares both results (only when dynamic temp flow enabled
 	store: Dict[str, pd.DataFrame] = field(default_factory=dict)
 	cur_t: float = 0  # Actual time [s]
+	forward_pipe_list: list = None
+	backward_pipe_list: list = None
 
 	# Network utils
 	net: pandapowerNet = field(init=False)
@@ -177,11 +179,15 @@ class DHNetwork:
 		self._store_output(label='dynamic')
 
 	def _internal_heatflow_calc(self):
+		# Define forward and backward pipe sequence
+		self.forward_pipe_list = self._get_forward_pipe_stream()
+		self.backward_pipe_list = None
+
 		self._calc_forward_pipe_tempflow()
 		self._calc_backward_pipe_tempflow()
 
 	def _calc_forward_pipe_tempflow(self):
-		for pipe in self.pipe[0:7]:  # TODO: Make this applicable to any network topology
+		for pipe in self.forward_pipe_list:
 			self._internal_tempflow_calc(pipe)
 			self._update_temperature_flow(pipe)
 
@@ -211,11 +217,36 @@ class DHNetwork:
 			self.net.res_pipe.at[p.index(pipe), 't_from_k'] = return_temp
 
 	def _calc_backward_pipe_tempflow(self):  # TODO: Make this applicable to any network topology
-		pipe_seq = self.pipe[7:14]
-		pipe_seq.reverse()
-		for pipe in pipe_seq:
+		# pipe_seq = self.pipe[7:14]
+		# pipe_seq.reverse()
+		for pipe in self.backward_pipe_list:
 			self._internal_tempflow_calc(pipe)
 			self._update_temperature_flow(pipe)
+
+	def _get_forward_pipe_stream(self):
+		pipelist = []
+		nodelist = []
+		nodes = ['n2s','n3s','n4s','n5s','n6s','n7s','n8s','n3sv','n3s_tank','n5sv','n7sv','n1s']
+
+		j = self.junction
+		# Determine starting node(s)
+		for node in nodes:
+			a = j.index(node)
+			outgo = self.net.pipe['name'].loc[self.net.pipe['from_junction'] == j.index(node)].values.tolist()
+			incom = self.net.pipe['name'].loc[self.net.pipe['to_junction'] == j.index(node)].values.tolist()
+			outgo_flow = self.net.res_pipe['mdot_from_kg_per_s'].loc[self.net.pipe['from_junction'] == j.index(node)].values.tolist()
+			incom_flow = self.net.res_pipe['mdot_to_kg_per_s'].loc[self.net.pipe['to_junction'] == j.index(node)].values.tolist()
+
+			if not any(x<0 for x in incom_flow) and not any(x<0 for x in outgo_flow):
+				# Check if incom pipes are already in pipelist
+				start_pipe = self.net.pipe['name'].loc[self.net.pipe['from_junction'] == j.index(node)].values.tolist()
+				if start_pipe:
+					pipelist.append(start_pipe)
+					nodelist.append(node)
+
+
+
+		return (None)
 
 	def _store_output(self, label='static'):  # TODO: Improve due to low performance
 		data = {}
@@ -415,6 +446,20 @@ class DHNetwork:
 			self._create_heatpump()
 		self._create_bypass()
 		self._create_flow_control()
+
+		# Export network
+		# pp.to_json(self.net, "network.json")
+		json_object = self.net.heat_exchanger.to_json(orient='records')
+
+		# Pretty print
+		# json_string = json.dumps(json_object,
+		# 						 indent=6)
+
+		json_string = json.dumps(json.loads(json_object), indent=4, sort_keys=True)
+
+		# Writing to sample.json
+		with open("network.json", "w") as outfile:
+			outfile.write(json_string)
 		# self._plot()
 
 	def _create_junctions(self):
@@ -518,7 +563,7 @@ class DHNetwork:
 		pp.create_valve(net, j.index('n2s'), j.index('n3s'), diameter_m=0.1, loss_coefficient=1000, opened=True, name="grid_v1")
 		if not self.tank_installed:
 			pp.create_valve(net, j.index('n3r'), j.index('n2r'), diameter_m=0.1, loss_coefficient=0, opened=True, name="grid_v2")
-
+		
 		self.pipe = net.pipe['name'].tolist()
 		self.valve = net.valve['name'].tolist()
 

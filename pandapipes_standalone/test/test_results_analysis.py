@@ -68,7 +68,7 @@ plt_dict_network = {
              'mdot_tank_in', 'mdot_tank_in_set',
              ],
     'Temperatures' : ['T_hot','T_avg','T_cold','T_cond_out','T_return_tank','T_return_grid'],
-    #'Power': ['Qdot_cons1', 'Qdot_cons2', 'Qdot_evap',]
+    'Power': ['Qdot_cons1', 'Qdot_cons2', 'Qdot_evap',]
 }
 
 plt_dict = plt_dict_network

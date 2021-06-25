@@ -12,15 +12,16 @@ META = {
         'models': {
                    'SimpleFlexHeatController': {
                                         'public': True,
-                                        'params': [
-                                                   ],
+                                        'params': ['voltage_control_enabled'],
                                         'attrs': [
                                                   # Input
-                                                  'mdot_HEX1', 'mdot_HEX2', 'T_tank_hot', 'T_hp_forward', 'P_HP_max', 'P_HP',
+                                                  'mdot_HEX1', 'mdot_HEX2', 'T_tank_hot', 'T_hp_cond_in', 'T_hp_cond_out', 'T_hp_evap_in', 'T_hp_evap_out',
+                                                  'P_hp_el_setpoint', 'P_hp_effective',
                                                   # Output
                                                   'mdot_1_supply', 'mdot_2_supply', 'mdot_3_supply',
                                                   'mdot_1_return', 'mdot_2_return', 'mdot_3_return',
-                                                  'Q_HP_set', 'mdot_HP_out', 'mdot_tank_in'
+                                                  'Q_HP_set', 'mdot_HP_out', 'mdot_tank_in',
+                                                  'hp_on_request', 'hp_off_request', 'state'
                                                   ],
                                         },
                    },
@@ -40,8 +41,8 @@ class SimpleFlexHeatControllerSimulator(Simulator):
         self.eid_counters = {}
         self.simulators: Dict[SimpleFlexHeatController] = {}
         self.entityparams = {}
-        self.output_vars = {'mdot_1_supply', 'mdot_2_supply', 'mdot_3_supply', 'mdot_1_return', 'mdot_2_return', 'mdot_3_return', 'Q_HP_set', 'mdot_HP_out', 'mdot_tank_in'}
-        self.input_vars = {'mdot_HEX1', 'mdot_HEX2', 'T_tank_hot', 'T_hp_forward', 'P_HP_max', 'P_HP'}
+        self.output_vars = {'mdot_1_supply', 'mdot_2_supply', 'mdot_3_supply', 'mdot_1_return', 'mdot_2_return', 'mdot_3_return', 'Q_HP_set', 'mdot_HP_out', 'mdot_tank_in', 'hp_on_request', 'hp_off_request', 'state'}
+        self.input_vars = {'mdot_HEX1', 'mdot_HEX2', 'T_tank_hot', 'T_hp_cond_in', 'T_hp_cond_out', 'T_hp_evap_in', 'T_hp_evap_out', 'P_hp_el_setpoint', 'P_hp_effective'}
 
     def init(self, sid, step_size=10, eid_prefix="FHctrl"):
 
@@ -94,9 +95,7 @@ class SimpleFlexHeatControllerSimulator(Simulator):
 
                     raise AttributeError(f"SimpleFlexHeatControllerSimulator {eid} has no input attribute {attr}.")
 
-            for _ in range(time - self.last_time):
-
-                esim.step_single()
+            esim.step_single()
 
         self.last_time = time
 

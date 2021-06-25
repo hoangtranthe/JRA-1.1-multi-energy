@@ -16,6 +16,7 @@ from .ts_player import TSSimSimulator
 
 # Control units
 from .simple_controller import SimpleFlexHeatControllerSimulator
+from .voltage_control import VoltageControlSimulator
 
 # On-line data logging
 from .collector import Collector

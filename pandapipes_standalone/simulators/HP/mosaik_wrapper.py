@@ -13,7 +13,7 @@ META = {
         'ConstantTcondHP': {
             'public': True,
             'params': [
-                'P_rated', 'lambda_comp', 'P_0', 'eta_sys', 'eta_comp', 'dt', 'T_cond_out_target', 'opmode'
+                'P_rated', 'lambda_comp', 'P_0', 'eta_sys', 'eta_comp', 'dt', 'T_cond_out_target', 'opmode', 'T_evap_out_min'
             ],
             'attrs': [
                 # Input
@@ -21,10 +21,10 @@ META = {
                 'mdot_cond_in', 'mdot_evap_in', 'opmode',
                 # Output
                 'Qdot_cond', 'Qdot_evap',
-                'P_effective', 'W_effective',
-                'Q_set', 'W_requested',
+                'P_effective', 'P_requested', 'P_rated',
+                'W_effective', 'W_requested', 'W_max', 'W_evap_max', 'W_cond_max', 'W_rated',
                 'mdot_cond_out', 'mdot_evap_out',
-                'T_cond_out', 'T_evap_out',
+                'T_cond_out', 'T_cond_out_target', 'T_evap_out',
                 'eta_hp'
             ],
         },
@@ -46,8 +46,8 @@ class ConstantTcondHPSimulator(Simulator):
         self.simulators: Dict[ConstantTcondHP] = {}
         self.entityparams = {}
         self.output_vars = {
-            'eta_hp', 'Qdot_cond', 'Qdot_evap', 'P_effective', 'W_requested', 'W_effective',
-            'T_cond_out', 'T_evap_out', 'mdot_cond_out', 'mdot_evap_out'}
+            'eta_hp', 'Qdot_cond', 'Qdot_evap', 'P_rated', 'P_requested', 'P_effective', 'W_requested', 'W_effective', 'W_max', 'W_evap_max', 'W_cond_max', 'W_rated',
+            'T_cond_out', 'T_cond_out_target', 'T_evap_out', 'mdot_cond_out', 'mdot_evap_out'}
         self.input_vars = {'T_cond_in', 'T_evap_in', 'Q_set', 'mdot_cond_in', 'mdot_evap_in', 'opmode'}
 
     def init(self, sid, step_size=10, eid_prefix="DistrictHP"):

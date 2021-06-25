@@ -1,1 +1,5 @@
 !**/__pycache__/
+
+.idea/
+pandapipes_standalone/cosimulation_logging.log
+pandapipes_standalone/test/test_collector_store.h5

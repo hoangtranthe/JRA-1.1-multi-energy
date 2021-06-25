@@ -33,6 +33,7 @@ SIM_CONFIG = {
               'SimpleControllerSim':        {'python':  'simulators:SimpleFlexHeatControllerSimulator'},
               'TSSim':                      {'python':  'simulators:TSSimSimulator'},
               'CollectorSim':               {'python':  'simulators:Collector'},
+              'VoltageControlSim':          {'python':  'simulators:VoltageControlSimulator'},
               }
 
 
@@ -53,7 +54,7 @@ PHYSICAL_STEP_SIZE = STEP_SIZE  # Physical evolution [s]
 CONTROL_STEP_SIZE = STEP_SIZE  # Flow control [s]
 PIPEFLOW_STEP_SIZE = STEP_SIZE
 OPTIMIZER_STEP_SIZE = STEP_SIZE  # Used for MPC controller [s]
-END = 6 * 60 * 60
+END = 12 * 60 * 60
 
 # # Set which day we are looking at.
 consumer_demand_series = pd.read_csv('./resources/heat/tc08ts01/distorted_heat_demand_load_profiles.csv', index_col=0, parse_dates=True)
@@ -106,9 +107,15 @@ simulators['hp'] = world.start(
     step_size=PHYSICAL_STEP_SIZE,
 )
 
-# # Simple controller # #
+# # Simple hp controller # #
 simulators['simple_controller'] = world.start(
     'SimpleControllerSim',
+    step_size=PHYSICAL_STEP_SIZE
+)
+
+# # Voltage controller # #
+simulators['voltage_controller'] = world.start(
+    'VoltageControlSim',
     step_size=PHYSICAL_STEP_SIZE
 )
 
@@ -132,7 +139,7 @@ entities['dh_network'] = simulators['dh_network'].DHNetwork(
     T_supply_grid=75,
     P_grid_bar=6,
     T_amb=8,
-    dynamic_temp_flow_enabled=True,
+    dynamic_temp_flow_enabled=False,
 )
 
 # #  Heat consumer - Heat exchanger (HEX) # #
@@ -176,19 +183,24 @@ entities['storage_tank'] = simulators['storage_tank'].WaterStorageTank(
 
 # # Heat pump
 entities['hp'] = simulators['hp'].ConstantTcondHP(
-    P_rated=250.0,
+    P_rated=100.0,
     lambda_comp=0.2,
     P_0=0.3,
-    eta_sys=0.8,
+    eta_sys=0.5,
     eta_comp=0.7,
+    T_evap_out_min=20,
     dt=STEP_SIZE,
     T_cond_out_target=HP_TEMP_COND_OUT_TARGET,  # degC
     opmode='constant_T_out',  # Constant output power at condenser
 )
 
 # # Simple controller # #
-entities['simple_controller'] = simulators['simple_controller'].SimpleFlexHeatController()
+entities['simple_controller'] = simulators['simple_controller'].SimpleFlexHeatController(
+    voltage_control_enabled=True
+)
 
+# # Voltage controller # #
+entities['voltage_controller'] = simulators['voltage_controller'].VoltageController()
 
 # # Collector # #
 entities['sc_monitor'] = simulators['collector'].Collector()
@@ -232,14 +244,20 @@ world.connect(entities['simple_controller'], entities['hp'], ('Q_HP_set', 'Q_set
 world.connect(entities['hp'], entities['dh_network'], ('Qdot_evap', 'Qdot_evap'))
 world.connect(entities['storage_tank'], entities['hp'], ('T_cold', 'T_cond_in'),
               time_shifted=True, initial_data={'T_cold': STORAGE_TANK_INIT_TEMP})
+# heat pump control
 world.connect(entities['simple_controller'], entities['hp'], ('mdot_HP_out', 'mdot_cond_in'))
-world.connect(entities['hp'], entities['simple_controller'], ('T_cond_out', 'T_hp_forward'),
-              time_shifted=True, initial_data={'T_cond_out': 50})
+world.connect(entities['hp'], entities['simple_controller'], ('T_cond_out_target', 'T_hp_cond_out'),
+              time_shifted=True, initial_data={'T_cond_out_target': HP_TEMP_COND_OUT_TARGET})
+world.connect(entities['hp'], entities['simple_controller'], ('T_cond_in', 'T_hp_cond_in'),
+              time_shifted=True, initial_data={'T_cond_in': STORAGE_TANK_INIT_TEMP})
+world.connect(entities['hp'], entities['simple_controller'], ('T_evap_in', 'T_hp_evap_in'),
+              time_shifted=True, initial_data={'T_evap_in': TEMP_RETURN_HEX_INIT})
 
 # storage tank inlet
 world.connect(entities['hp'], entities['storage_tank'], ('mdot_cond_out', 'mdot_ch_in'))
 world.connect(entities['hp'], entities['storage_tank'], ('T_cond_out', 'T_ch_in'))
-world.connect(entities['simple_controller'], entities['storage_tank'], ('mdot_3_supply', 'mdot_dis_out'))
+world.connect(entities['simple_controller'], entities['storage_tank'], ('mdot_3_supply', 'mdot_dis_out'),
+              time_shifted=True, initial_data={'mdot_3_supply': 0})
 world.connect(entities['dh_network'], entities['storage_tank'], ('T_return_tank', 'T_dis_in'))
 
 # storage tank outlet
@@ -248,6 +266,10 @@ world.connect(entities['storage_tank'], entities['dh_network'], ('T_hot', 'T_tan
 world.connect(entities['storage_tank'], entities['simple_controller'], ('T_hot', 'T_tank_hot'),
               time_shifted=True, initial_data={'T_hot': STORAGE_TANK_INIT_TEMP})
 
+# voltage control
+world.connect(entities['voltage_controller'], entities['simple_controller'], ('P_hp_el_setpoint', 'P_hp_el_setpoint'))
+world.connect(entities['hp'], entities['simple_controller'], ('P_effective', 'P_hp_effective'),
+              time_shifted=True, initial_data={'P_effective': 0})
 
 ###################
 # Data collection #
@@ -272,13 +294,19 @@ collector_connections = {
         'mdot_evap_in', 'mdot_evap_out',
         'Q_set', 'Qdot_cond',
         'W_effective', 'W_requested',
-        'P_effective', 'eta_hp'],
+        'W_max', 'W_evap_max', 'W_cond_max', 'W_rated',
+        'P_effective', 'P_requested', 'P_rated', 'eta_hp'],
     'dh_network': [
         'T_tank_forward', 'T_supply_cons1', 'T_supply_cons2', 'T_return_cons1', 'T_return_cons2','T_return_tank','T_return_grid',
         'mdot_cons1_set', 'mdot_cons2_set', 'mdot_grid_set', 'mdot_tank_in_set',
         'mdot_cons1', 'mdot_cons2', 'mdot_grid', 'mdot_tank_in',
-        'Qdot_cons1', 'Qdot_cons2', 'Qdot_evap'
-    ],
+        'Qdot_cons1', 'Qdot_cons2', 'Qdot_evap'],
+    'voltage_controller': [
+        'P_hp_el_setpoint'],
+    'simple_controller': [
+        'hp_on_request', 'hp_off_request',
+        'mdot_HP_out', 'state'
+    ]
 }
 
 # MultiCollector

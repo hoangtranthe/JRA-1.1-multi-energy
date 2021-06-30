@@ -6,7 +6,9 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 from dataclasses import dataclass, field
+from typing import List, Dict, Optional, Set, Tuple
 import numpy as np
+from simple_pid import PID
 
 @dataclass
 class SimpleFlexHeatController:
@@ -17,22 +19,31 @@ class SimpleFlexHeatController:
 	# Parameters
 	T_tank_max: float = 72  # Maximum tank temperature - [degC]
 	T_tank_min: float = 65  # Minimum tank temperature - [degC]
-	T_hp_min: float = 70  # Minimum heat pump output temperature - [degC]
 
 	# Variables
-	## Input
+	## Input measures
 	mdot_HEX1: float = 0.0  # Mass flow requested by the consumer 1 HEX - [kg/s]
 	mdot_HEX2: float = 0.0  # Mass flow requested by the consumer 1 HEX - [kg/s]
 	mdot_bypass: float = 0.5  # Mass flow through network bypass - [kg/s]
 	T_tank_hot: float = 50  # Average tank temperature - [degC]
-	T_hp_forward: float = 70  # Heat pump output temperature - [degC]
+	T_hp_cond_in: float = 50  # Heat pump condenser inlet temperature - [degC]
+	T_hp_cond_out: float = 70  # Heat pump output temperature - [degC]
+	T_hp_evap_in: float = 40  # Heat pump evaporator inlet temperature - [degC]
+	T_hp_evap_out_min: float = 15  # Heat pump minimum evaporator outlet temperature - [degC]
+	# Control inputs
+	voltage_control_enabled: bool = False  # Centralised voltage controller connected
+	P_hp_rated: float = 100  # Rated heat pump el. consumption [kWe]
+	P_hp_el_setpoint: float = 0  # Heat pump setpoint - [kWe]
+	P_hp_effective: float = 0  # Effective heat pump electricity consumption - [kWe]
 
-	hp_on_request: bool = False  # Voltage control request for under voltage (toggle) and time period (in sec)
-	hp_off_request: bool = False  # Voltage control request for over voltage (toggle) and time period (in sec)
+	# Control outputs
+	hp_on_request: bool = False  # Voltage control request for under voltage (toggle) and time period - [sec]
+	hp_off_request: bool = False  # Voltage control request for over voltage (toggle) and time period - [sec]
 
 	## Internal Vars
-	mdot_min: int = 0.11  # Minimum forward mass flow
-	MINIMUM_HEAT_SUPPLY_GRID_SHARE = 0.5  # Share of load supplied by the external grid (deprecated)
+	MDOT_FORWARD_MIN: int = 0.11  # Minimum forward mass flow - [kg/s]
+	MDOT_HP_MAX: int = 10  # Maximum heat pump output mass flow - [kg/s]
+	hp_operating_threshold: int = 0.35 * P_hp_rated  # HP operating threshold (minimum on-time el. consumption) - [kWe]
 
 	## Output
 	mdot_1_supply: float = 0.0  # Supply 3 way valve mass flow at port 1 - [kg/s]
@@ -53,30 +64,38 @@ class SimpleFlexHeatController:
 
 	def __post_init__(self):
 		self.step_single()
+		self._init_hp_control()
+
+	def _init_hp_control(self):
+		# init pid control
+		self.pid = PID(-1, 0, 0)
+		self.pid.output_limits = (None, None)
+		self.pid.setpoint = 1.0
+		#self.pid.sample_time = 60  # Update every 60 seconds
 
 	def step_single(self):
-		self._update_state()
-		self._do_state_based_control()
+		self._update_state()  # Check if state is changed
+		self._do_state_based_control()  # Do control based on new step
 
 	def _do_state_based_control(self):
 		self.mdot_2_supply = -(self.mdot_HEX1 + self.mdot_HEX2 + self.mdot_bypass)
 		self.mdot_1_return = self.mdot_HEX1 + self.mdot_HEX2 + self.mdot_bypass
 
 		if self.state == 1:  # Mode 1: External grid supplies heat, hp and tank inactive
-			self.mdot_1_supply = - self.mdot_2_supply - self.mdot_min
+			self.mdot_1_supply = - self.mdot_2_supply - self.MDOT_FORWARD_MIN
 			self.mdot_HP_out = 0
 
 		elif self.state == 2:  # Mode 2: External grid supplies heat, HP charges tank
-			self.mdot_1_supply = - self.mdot_2_supply - self.mdot_min
-			self.mdot_HP_out = -3.5  # Set HP outflow
+			self.mdot_1_supply = - self.mdot_2_supply - self.MDOT_FORWARD_MIN
+			self.set_hp_mdot_out()
 
 		elif self.state == 3:  # Mode 3: Discharge the tank, hp off
-			self.mdot_1_supply = self.mdot_min
+			self.mdot_1_supply = self.MDOT_FORWARD_MIN
 			self.mdot_HP_out = 0
 
 		elif self.state == 4:  # Mode 4: Discharge the tank, hp on
-			self.mdot_1_supply = self.mdot_min
-			self.mdot_HP_out = -3.5
+			self.mdot_1_supply = self.MDOT_FORWARD_MIN
+			self.set_hp_mdot_out()
 
 		elif self.state == 5:  # Mode 5: Tank supports (with fixed mass flow) the grid, hp off
 			self.mdot_1_supply = - self.mdot_2_supply - 2.0
@@ -84,7 +103,7 @@ class SimpleFlexHeatController:
 
 		elif self.state == 6:  # Mode 6: Tank supports (with fixed mass flow) the grid, hp on
 			self.mdot_1_supply = - self.mdot_2_supply - 2.0
-			self.mdot_HP_out = -3.5
+			self.mdot_HP_out = -2.5
 
 		self.mdot_3_supply = -(self.mdot_1_supply + self.mdot_2_supply)
 
@@ -93,33 +112,81 @@ class SimpleFlexHeatController:
 		self.mdot_2_return = -self.mdot_1_supply
 
 	def _update_state(self):
-		state_old = self.state
-		if self.state is 1:
+		if self.voltage_control_enabled:
+			self.set_hp_request()
+
+		if self.state is 1:  # Mode 1: External grid supplies, tank inactive
 			if not self.hp_off_request:
-				self.state = 2  # Mode 1: External grid suppies, tank inactive
+				self.set_state(new_state=2)  # Mode 2: Charge the tank, external supply
 
-		if self.state is 6:
-			if not self.hp_on_request:
-				self.state = 5  # Mode 5: Tank support, hp off
-
-		if self.state is 5:
-			if self.T_tank_hot < self.T_tank_min:
-				if self.hp_off_request:
-					self.state = 1  # Mode 1: External grid suppies, tank inactive
-				else:
-					self.state = 2  # Mode 2: Grid suppies, tank inactive, hp on
-
-		elif self.state is 2:  # Mode 2: Charge the tank, external supply
-			if self.T_tank_hot > self.T_tank_max:
+		elif self.state is 2:  # Mode 2: Grid supplies, tank inactive, hp on
+			if self.T_tank_hot > self.T_tank_max:  # or self.hp_off_request:
 				if self.hp_on_request:
-					self.state = 6  # Mode 3: Discharge the tank, hp on
+					self.set_state(new_state=6)
 				else:
-					self.state = 5
+					self.set_state(new_state=5)
+			if self.hp_off_request:
+				self.set_state(new_state=5)
+
+		elif self.state is 6:  # Mode 6: Grid supplies, tank supports (and holding the temperature)
+			if not self.hp_on_request:
+				self.set_state(new_state=5)
+
+		elif self.state is 5:  # Mode 5: Tank support, hp off
+			if self.T_tank_hot < self.T_tank_min:  # or self.hp_on_request:
+				if self.hp_off_request:
+					self.set_state(new_state=1)
+				else:
+					self.set_state(new_state=2)
+			if self.hp_on_request:
+				self.set_state(new_state=2)
 
 
-		if self.state != state_old:
-			print(f"Controller state changed from {state_old} to {self.state}")
-			timer = 0
+	def set_hp_request(self):
+		# Set heat_pump request
+		if self.P_hp_el_setpoint > self.hp_operating_threshold:
+			self.hp_off_request = False
+			self.hp_on_request = True
+		else:
+			self.hp_off_request = True
+			self.hp_on_request = False
+
+	def set_state(self, new_state):
+		old_state = self.state
+		self.state = new_state
+		if self.state != old_state:
+			print(f"Controller state changed from {old_state} to {self.state}")
+
+	def set_hp_mdot_out(self):
+		if self.voltage_control_enabled:
+			if self.hp_off_request:
+				self.mdot_HP_out = 0
+			else:
+				# PID control
+				act = self.P_hp_effective/self.P_hp_el_setpoint
+				out = self.pid(self.P_hp_effective/self.P_hp_el_setpoint)
+				mdot = self.mdot_HP_out
+				mdot += out
+
+				self.mdot_HP_out = np.clip(mdot, -self.MDOT_HP_MAX, 0)
+
+		else:
+			self.mdot_HP_out = -3.5
+			pass
+
+	def get_hp_cop(self):
+		eta_hp_sys = 0.5  # Estimated hp efficiency
+		T_hot_in = self.T_hp_cond_in
+		T_hot_out = self.T_hp_cond_out
+		T_cold_in = self.T_hp_evap_in
+		T_cold_out = self.T_hp_evap_out_min
+
+		# Calculate COP
+		T_hot_m = (T_hot_in - T_hot_out) / np.log(T_hot_out/T_hot_in)
+		T_cold_m = (T_cold_in - T_cold_out) / np.log(T_cold_out/T_cold_in)
+		cop_hp = (eta_hp_sys * T_hot_m) / (T_hot_m - T_cold_m)
+
+		return cop_hp
 
 if __name__ == '__main__':
 

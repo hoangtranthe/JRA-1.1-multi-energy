@@ -24,8 +24,6 @@ class HEXConsumer:
 	max_change_rate: float = 1  # Valve cannot adjust faster than this rate [kg/s/s]
 
 	# Variables
-	## Internal
-
 	## Input
 	P_heat: float = 500  # Heat demand - [kW]
 	T_supply: float = 70.0  # Supply temperature - [degC]
@@ -43,10 +41,6 @@ class HEXConsumer:
 		self.step_single()
 
 	def step_single(self):
-		a = self.P_heat
-		b = self.Cp_water
-		c = self.T_supply
-		d = self.T_return_target
 		# Positive mass flow entering the HEX
 		# Action of return-side valve is:
 		# Increase outgoing mass flow if return temperature is lower than the target

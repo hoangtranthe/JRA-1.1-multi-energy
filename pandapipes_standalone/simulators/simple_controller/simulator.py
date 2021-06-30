@@ -69,8 +69,9 @@ class SimpleFlexHeatController:
 	def _init_hp_control(self):
 		# init pid control
 		self.pid = PID(-1, 0, 0)
-		self.pid.output_limits = (-10, 0)
-		self.pid.sample_time = 10  # Update every 10 seconds
+		self.pid.output_limits = (None, None)
+		self.pid.setpoint = 1.0
+		#self.pid.sample_time = 60  # Update every 60 seconds
 
 	def step_single(self):
 		self._update_state()  # Check if state is changed
@@ -162,20 +163,15 @@ class SimpleFlexHeatController:
 				self.mdot_HP_out = 0
 			else:
 				# PID control
-				# self.pid.setpoint = self.P_hp_el_setpoint  # Set mass flow setpoint
-				error_abs = self.P_hp_el_setpoint - self.P_hp_effective
-				error_pu = (error_abs / self.P_hp_el_setpoint)
-				# self.mdot_HP_out = self.pid(self.P_hp_effective)
+				act = self.P_hp_effective/self.P_hp_el_setpoint
+				out = self.pid(self.P_hp_effective/self.P_hp_el_setpoint)
 				mdot = self.mdot_HP_out
-				mdot += error_pu * -0.5
+				mdot += out
 
 				self.mdot_HP_out = np.clip(mdot, -self.MDOT_HP_MAX, 0)
 
 		else:
 			self.mdot_HP_out = -3.5
-			# cop_hp = self.get_hp_cop()
-			# mdot_calc = (self.P_hp_el_setpoint * cop_hp) / (self.Cp_water * (self.T_hp_cond_out - self.T_hp_cond_in))
-			# self.mdot_HP_out = -np.clip(mdot_calc, 0, 5)
 			pass
 
 	def get_hp_cop(self):

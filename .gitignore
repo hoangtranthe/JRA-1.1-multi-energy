@@ -1,1 +1,10 @@
-!**/__pycache__/
+# Remove .idea
+.idea/
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.pyc
+
+# Ignore cosimulation log
+pandapipes_standalone/cosimulation_logging.log
+pandapipes_standalone/test/test_collector_store.h5

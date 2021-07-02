@@ -8,7 +8,6 @@ from pandapower.timeseries import DFData
 from pandapower.timeseries import OutputWriter
 from pandapower.timeseries.run_time_series import run_timeseries
 from pandapower.control import ConstControl
-import DiscreteHPControl
 
 
 def quasidyn(output_dir, net, n_timesteps, data_subfolder, data_filename):
@@ -80,4 +79,37 @@ def plot_quasi_res(dirname, subfolder, filename, net, n_timesteps, stepsize):
         mpl.ylabel(info.iloc[i]['ylabel'])
         mpl.title(info.iloc[i]['title'])
         mpl.grid()
-        mpl.show()
+        #mpl.show()
+        mpl.savefig(info.iloc[i]['component']+'.png')
+
+
+if __name__ == '__main__':
+
+    import pandapower as pp
+    net = pp.from_json('power_grid_model.json')
+
+    # import plot_network
+    # plot_network.plot_overview(net)
+
+    #create heat pump controller
+    import DiscreteHPControl
+    hp_controller = DiscreteHPControl.DiscreteHPControl(
+        net=net, hid=1, delta_vm_pu=0.1, deadband=0.01,
+        delta_vm_lower_pu=-0.1, delta_vm_upper_pu=0.1
+        )
+
+    dirname = os.path.dirname(__file__)
+    output_dir_quasi = os.path.join(dirname, "QuasiDynamic_Results")
+
+    print("Results can be found in your local temp folder: {}".format(output_dir_quasi))
+    if not os.path.exists(output_dir_quasi):
+        os.mkdir(output_dir_quasi)
+
+    quasidyn(
+        output_dir_quasi, net, n_timesteps=96, data_subfolder="netw_params",
+        data_filename="load_gen_profiles_15p.csv"
+        )
+
+    plot_quasi_res(
+        dirname, "QuasiDynamic_Results", 'plot_info.csv', net, n_timesteps=96, stepsize=15
+        )

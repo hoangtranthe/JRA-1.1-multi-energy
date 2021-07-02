@@ -4,18 +4,25 @@
 
 Required Python packages:
 
- * matplotlib         3.3.4
- * networkx           2.5
- * numpy              1.20.1
- * pandapower         2.5.0
- * pandas             1.1.5
+ * *matplotlib*: 3.3.4
+ * *networkx*: 2.5
+ * *numpy*: 1.19.5
+ * *pandapower*: 2.5.0
+ * *pandas*: 1.1.5
+
+To install all required Python packages, run the following command:
+```
+> python -m pip install -r requirements.txt
+```
 
 ## Running a simulation
 
-To run the simulation, issue the following command:
+To create the network model (``power_grid_model.json``), run the following command:
 ```
-> python main.py
+> python create_network.py
 ```
 
-Results can be found in your local temp folder ......
-Progress: | ....................... | 100.0 % Complete
+Then, to run a quasi-dynamic simulation, run the following command:
+```
+> python quasidyn_calc.py
+```

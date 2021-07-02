@@ -136,7 +136,7 @@ class CtrlValve(control.basic_controller.Controller):
         # set valve position
         # PID control
         output = self.pid(mdot)
-        self.loss_coeff += output
+        self.loss_coeff += output  # Controlled variable: dloss/dt
 
         # Validate limits of loss_coeff
         min = self.loss_coeff_min

@@ -6,5 +6,7 @@ __pycache__/
 *.pyc
 
 # Ignore cosimulation log
-pandapipes_standalone/cosimulation_logging.log
-pandapipes_standalone/test/test_collector_store.h5
+*.log
+
+# Ignore results files
+*.h5

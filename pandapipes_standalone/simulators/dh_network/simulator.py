@@ -181,7 +181,7 @@ class DHNetwork:
 	def _internal_heatflow_calc(self):
 		# Define forward and backward pipe sequence
 		self.forward_pipe_list = self._get_forward_pipe_stream()
-		self.backward_pipe_list = None
+		self.backward_pipe_list = self._get_backward_pipe_stream()
 
 		self._calc_forward_pipe_tempflow()
 		self._calc_backward_pipe_tempflow()
@@ -217,36 +217,32 @@ class DHNetwork:
 			self.net.res_pipe.at[p.index(pipe), 't_from_k'] = return_temp
 
 	def _calc_backward_pipe_tempflow(self):  # TODO: Make this applicable to any network topology
-		# pipe_seq = self.pipe[7:14]
-		# pipe_seq.reverse()
 		for pipe in self.backward_pipe_list:
 			self._internal_tempflow_calc(pipe)
 			self._update_temperature_flow(pipe)
 
 	def _get_forward_pipe_stream(self):
-		pipelist = []
-		nodelist = []
-		nodes = ['n2s','n3s','n4s','n5s','n6s','n7s','n8s','n3sv','n3s_tank','n5sv','n7sv','n1s']
+		forwardpipes = ['l1s', 'l2s', 'l3s','l4s', 'l5s', 'l6s', 'l1s_tank']
+		pipestream = self._get_pipe_flow_direction_by_pressures()
+		forwardpipestream = pipestream.loc[pipestream.isin(forwardpipes)]
+		return (forwardpipestream.values)
 
-		j = self.junction
-		# Determine starting node(s)
-		for node in nodes:
-			a = j.index(node)
-			outgo = self.net.pipe['name'].loc[self.net.pipe['from_junction'] == j.index(node)].values.tolist()
-			incom = self.net.pipe['name'].loc[self.net.pipe['to_junction'] == j.index(node)].values.tolist()
-			outgo_flow = self.net.res_pipe['mdot_from_kg_per_s'].loc[self.net.pipe['from_junction'] == j.index(node)].values.tolist()
-			incom_flow = self.net.res_pipe['mdot_to_kg_per_s'].loc[self.net.pipe['to_junction'] == j.index(node)].values.tolist()
-
-			if not any(x<0 for x in incom_flow) and not any(x<0 for x in outgo_flow):
-				# Check if incom pipes are already in pipelist
-				start_pipe = self.net.pipe['name'].loc[self.net.pipe['from_junction'] == j.index(node)].values.tolist()
-				if start_pipe:
-					pipelist.append(start_pipe)
-					nodelist.append(node)
+	def _get_backward_pipe_stream(self):
+		backwardpipes = ['l1r', 'l2r', 'l3r','l4r', 'l5r', 'l6r', 'l1r_tank']
+		pipestream = self._get_pipe_flow_direction_by_pressures()
+		backwardpipestream = pipestream.loc[pipestream.isin(backwardpipes)]
+		return (backwardpipestream.values)
 
 
+	def _get_pipe_flow_direction_by_pressures(self):
+		# Sort pipes according to their pressures
+		index = self.net.res_pipe.sort_values('p_from_bar', ascending=False).index
+		list = index.values
 
-		return (None)
+		# Reindex pipes according to pressure drop
+		pipenames = self.net.pipe['name'].reindex(list)
+
+		return pipenames
 
 	def _store_output(self, label='static'):  # TODO: Improve due to low performance
 		data = {}
@@ -432,7 +428,7 @@ class DHNetwork:
 
 	def _create_network(self):
 		# create empty network
-		self.net = pp.create_empty_network("net", add_stdtypes=False)
+		self.net = pp.create_empty_network("net", add_stdtypes=True)
 
 		# create fluid
 		pp.create_fluid_from_lib(self.net, "water", overwrite=True)

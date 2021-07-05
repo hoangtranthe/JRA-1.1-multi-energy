@@ -139,7 +139,7 @@ entities['dh_network'] = simulators['dh_network'].DHNetwork(
     T_supply_grid=75,
     P_grid_bar=6,
     T_amb=8,
-    dynamic_temp_flow_enabled=False,
+    dynamic_temp_flow_enabled=True,
 )
 
 # #  Heat consumer - Heat exchanger (HEX) # #
@@ -196,7 +196,7 @@ entities['hp'] = simulators['hp'].ConstantTcondHP(
 
 # # Simple controller # #
 entities['simple_controller'] = simulators['simple_controller'].SimpleFlexHeatController(
-    voltage_control_enabled=True
+    voltage_control_enabled=False
 )
 
 # # Voltage controller # #

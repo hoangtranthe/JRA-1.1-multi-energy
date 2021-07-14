@@ -1,13 +1,12 @@
+# Copyright (c) 2021 by ERIGrid 2.0. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
+
 """
 	Heat exchanger model of a single consumer.
 """
 
 from dataclasses import dataclass, field
 from ..util import clamp, safediv
-
-
-# Copyright (c) 2021 by ERIGrid 2.0. All rights reserved.
-# Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 @dataclass
 class HEXConsumer:
@@ -37,7 +36,6 @@ class HEXConsumer:
 	Cp_water = 4.180  # [kJ/(kg.degK)]
 
 	def __post_init__(self):
-
 		self.step_single()
 
 	def step_single(self):

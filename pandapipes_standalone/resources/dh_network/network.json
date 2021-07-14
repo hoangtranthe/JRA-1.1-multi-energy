@@ -1,0 +1,484 @@
+[
+    {
+        "height_m": 0.0,
+        "in_service": true,
+        "name": "n1s",
+        "pn_bar": 6.0,
+        "tfluid_k": 348.15,
+        "type": "junction"
+    },
+    {
+        "height_m": 0.0,
+        "in_service": true,
+        "name": "n1r",
+        "pn_bar": 6.0,
+        "tfluid_k": 348.15,
+        "type": "junction"
+    },
+    {
+        "height_m": 0.0,
+        "in_service": true,
+        "name": "n2s",
+        "pn_bar": 6.0,
+        "tfluid_k": 348.15,
+        "type": "junction"
+    },
+    {
+        "height_m": 0.0,
+        "in_service": true,
+        "name": "n2r",
+        "pn_bar": 6.0,
+        "tfluid_k": 348.15,
+        "type": "junction"
+    },
+    {
+        "height_m": 0.0,
+        "in_service": true,
+        "name": "n3s",
+        "pn_bar": 6.0,
+        "tfluid_k": 348.15,
+        "type": "junction"
+    },
+    {
+        "height_m": 0.0,
+        "in_service": true,
+        "name": "n3s_tank",
+        "pn_bar": 6.0,
+        "tfluid_k": 348.15,
+        "type": "junction"
+    },
+    {
+        "height_m": 0.0,
+        "in_service": true,
+        "name": "n3sv",
+        "pn_bar": 6.0,
+        "tfluid_k": 348.15,
+        "type": "junction"
+    },
+    {
+        "height_m": 0.0,
+        "in_service": true,
+        "name": "n3r",
+        "pn_bar": 6.0,
+        "tfluid_k": 348.15,
+        "type": "junction"
+    },
+    {
+        "height_m": 0.0,
+        "in_service": true,
+        "name": "n3r_tank",
+        "pn_bar": 6.0,
+        "tfluid_k": 348.15,
+        "type": "junction"
+    },
+    {
+        "height_m": 0.0,
+        "in_service": true,
+        "name": "n4s",
+        "pn_bar": 6.0,
+        "tfluid_k": 348.15,
+        "type": "junction"
+    },
+    {
+        "height_m": 0.0,
+        "in_service": true,
+        "name": "n4r",
+        "pn_bar": 6.0,
+        "tfluid_k": 348.15,
+        "type": "junction"
+    },
+    {
+        "height_m": 0.0,
+        "in_service": true,
+        "name": "n5sv",
+        "pn_bar": 6.0,
+        "tfluid_k": 348.15,
+        "type": "junction"
+    },
+    {
+        "height_m": 0.0,
+        "in_service": true,
+        "name": "n5s",
+        "pn_bar": 6.0,
+        "tfluid_k": 348.15,
+        "type": "junction"
+    },
+    {
+        "height_m": 0.0,
+        "in_service": true,
+        "name": "n5r",
+        "pn_bar": 6.0,
+        "tfluid_k": 348.15,
+        "type": "junction"
+    },
+    {
+        "height_m": 0.0,
+        "in_service": true,
+        "name": "n6s",
+        "pn_bar": 6.0,
+        "tfluid_k": 348.15,
+        "type": "junction"
+    },
+    {
+        "height_m": 0.0,
+        "in_service": true,
+        "name": "n6r",
+        "pn_bar": 6.0,
+        "tfluid_k": 348.15,
+        "type": "junction"
+    },
+    {
+        "height_m": 0.0,
+        "in_service": true,
+        "name": "n7sv",
+        "pn_bar": 6.0,
+        "tfluid_k": 348.15,
+        "type": "junction"
+    },
+    {
+        "height_m": 0.0,
+        "in_service": true,
+        "name": "n7s",
+        "pn_bar": 6.0,
+        "tfluid_k": 348.15,
+        "type": "junction"
+    },
+    {
+        "height_m": 0.0,
+        "in_service": true,
+        "name": "n7r",
+        "pn_bar": 6.0,
+        "tfluid_k": 348.15,
+        "type": "junction"
+    },
+    {
+        "height_m": 0.0,
+        "in_service": true,
+        "name": "n8s",
+        "pn_bar": 6.0,
+        "tfluid_k": 348.15,
+        "type": "junction"
+    },
+    {
+        "height_m": 0.0,
+        "in_service": true,
+        "name": "n8r",
+        "pn_bar": 6.0,
+        "tfluid_k": 348.15,
+        "type": "junction"
+    }
+][
+    {
+        "in_service": true,
+        "junction": 0,
+        "name": "ext_grid",
+        "p_bar": 6.0,
+        "t_k": 348.15,
+        "type": "pt"
+    },
+    {
+        "in_service": true,
+        "junction": 5,
+        "name": "supply_tank",
+        "p_bar": 6.0,
+        "t_k": 343.15,
+        "type": "pt"
+    }
+][
+    {
+        "in_service": true,
+        "junction": 1,
+        "mdot_kg_per_s": 7.5,
+        "name": "sink_grid",
+        "scaling": 1.0,
+        "type": "sink"
+    },
+    {
+        "in_service": true,
+        "junction": 8,
+        "mdot_kg_per_s": 0.0,
+        "name": "sink_tank",
+        "scaling": 1.0,
+        "type": "sink"
+    }
+][
+    {
+        "in_service": true,
+        "junction": 1,
+        "mdot_kg_per_s": 0.0,
+        "name": "source_grid",
+        "scaling": 1.0,
+        "type": "source"
+    }
+][
+    {
+        "alpha_w_per_m2k": 1.5,
+        "diameter_m": 0.1,
+        "from_junction": 0,
+        "in_service": true,
+        "k_mm": 0.01,
+        "length_km": 0.5,
+        "loss_coefficient": 0.0,
+        "name": "l1s",
+        "qext_w": 0.0,
+        "sections": 1,
+        "std_type": null,
+        "text_k": 281.15,
+        "to_junction": 2,
+        "type": "pipe"
+    },
+    {
+        "alpha_w_per_m2k": 1.5,
+        "diameter_m": 0.1,
+        "from_junction": 6,
+        "in_service": true,
+        "k_mm": 0.01,
+        "length_km": 0.01,
+        "loss_coefficient": 0.0,
+        "name": "l1s_tank",
+        "qext_w": 0.0,
+        "sections": 1,
+        "std_type": null,
+        "text_k": 281.15,
+        "to_junction": 4,
+        "type": "pipe"
+    },
+    {
+        "alpha_w_per_m2k": 1.5,
+        "diameter_m": 0.1,
+        "from_junction": 4,
+        "in_service": true,
+        "k_mm": 0.01,
+        "length_km": 0.01,
+        "loss_coefficient": 0.0,
+        "name": "l2s",
+        "qext_w": 0.0,
+        "sections": 1,
+        "std_type": null,
+        "text_k": 281.15,
+        "to_junction": 9,
+        "type": "pipe"
+    },
+    {
+        "alpha_w_per_m2k": 1.5,
+        "diameter_m": 0.1,
+        "from_junction": 9,
+        "in_service": true,
+        "k_mm": 0.01,
+        "length_km": 0.01,
+        "loss_coefficient": 0.0,
+        "name": "l3s",
+        "qext_w": 0.0,
+        "sections": 1,
+        "std_type": null,
+        "text_k": 281.15,
+        "to_junction": 11,
+        "type": "pipe"
+    },
+    {
+        "alpha_w_per_m2k": 1.5,
+        "diameter_m": 0.1,
+        "from_junction": 9,
+        "in_service": true,
+        "k_mm": 0.01,
+        "length_km": 0.5,
+        "loss_coefficient": 0.0,
+        "name": "l4s",
+        "qext_w": 0.0,
+        "sections": 1,
+        "std_type": null,
+        "text_k": 281.15,
+        "to_junction": 14,
+        "type": "pipe"
+    },
+    {
+        "alpha_w_per_m2k": 1.5,
+        "diameter_m": 0.1,
+        "from_junction": 14,
+        "in_service": true,
+        "k_mm": 0.01,
+        "length_km": 0.01,
+        "loss_coefficient": 0.0,
+        "name": "l5s",
+        "qext_w": 0.0,
+        "sections": 1,
+        "std_type": null,
+        "text_k": 281.15,
+        "to_junction": 16,
+        "type": "pipe"
+    },
+    {
+        "alpha_w_per_m2k": 1.5,
+        "diameter_m": 0.1,
+        "from_junction": 14,
+        "in_service": true,
+        "k_mm": 0.01,
+        "length_km": 0.01,
+        "loss_coefficient": 0.0,
+        "name": "l6s",
+        "qext_w": 0.0,
+        "sections": 1,
+        "std_type": null,
+        "text_k": 281.15,
+        "to_junction": 19,
+        "type": "pipe"
+    },
+    {
+        "alpha_w_per_m2k": 1.5,
+        "diameter_m": 0.1,
+        "from_junction": 3,
+        "in_service": true,
+        "k_mm": 0.01,
+        "length_km": 0.5,
+        "loss_coefficient": 0.0,
+        "name": "l1r",
+        "qext_w": 0.0,
+        "sections": 1,
+        "std_type": null,
+        "text_k": 281.15,
+        "to_junction": 1,
+        "type": "pipe"
+    },
+    {
+        "alpha_w_per_m2k": 1.5,
+        "diameter_m": 0.1,
+        "from_junction": 7,
+        "in_service": true,
+        "k_mm": 0.01,
+        "length_km": 0.01,
+        "loss_coefficient": 0.0,
+        "name": "l1r_tank",
+        "qext_w": 0.0,
+        "sections": 1,
+        "std_type": null,
+        "text_k": 281.15,
+        "to_junction": 8,
+        "type": "pipe"
+    },
+    {
+        "alpha_w_per_m2k": 1.5,
+        "diameter_m": 0.1,
+        "from_junction": 10,
+        "in_service": true,
+        "k_mm": 0.01,
+        "length_km": 0.5,
+        "loss_coefficient": 0.0,
+        "name": "l2r",
+        "qext_w": 0.0,
+        "sections": 1,
+        "std_type": null,
+        "text_k": 281.15,
+        "to_junction": 7,
+        "type": "pipe"
+    },
+    {
+        "alpha_w_per_m2k": 1.5,
+        "diameter_m": 0.1,
+        "from_junction": 13,
+        "in_service": true,
+        "k_mm": 0.01,
+        "length_km": 0.01,
+        "loss_coefficient": 0.0,
+        "name": "l3r",
+        "qext_w": 0.0,
+        "sections": 1,
+        "std_type": null,
+        "text_k": 281.15,
+        "to_junction": 10,
+        "type": "pipe"
+    },
+    {
+        "alpha_w_per_m2k": 1.5,
+        "diameter_m": 0.1,
+        "from_junction": 15,
+        "in_service": true,
+        "k_mm": 0.01,
+        "length_km": 0.5,
+        "loss_coefficient": 0.0,
+        "name": "l4r",
+        "qext_w": 0.0,
+        "sections": 5,
+        "std_type": null,
+        "text_k": 281.15,
+        "to_junction": 10,
+        "type": "pipe"
+    },
+    {
+        "alpha_w_per_m2k": 1.5,
+        "diameter_m": 0.1,
+        "from_junction": 18,
+        "in_service": true,
+        "k_mm": 0.01,
+        "length_km": 0.01,
+        "loss_coefficient": 0.0,
+        "name": "l5r",
+        "qext_w": 0.0,
+        "sections": 1,
+        "std_type": null,
+        "text_k": 281.15,
+        "to_junction": 15,
+        "type": "pipe"
+    },
+    {
+        "alpha_w_per_m2k": 1.5,
+        "diameter_m": 0.1,
+        "from_junction": 20,
+        "in_service": true,
+        "k_mm": 0.01,
+        "length_km": 0.01,
+        "loss_coefficient": 0.0,
+        "name": "l6r",
+        "qext_w": 0.0,
+        "sections": 1,
+        "std_type": null,
+        "text_k": 281.15,
+        "to_junction": 15,
+        "type": "pipe"
+    }
+][
+    {
+        "diameter_m": 0.1,
+        "from_junction": 2,
+        "loss_coefficient": 1000.0,
+        "name": "grid_v1",
+        "opened": true,
+        "to_junction": 4,
+        "type": "valve"
+    },
+    {
+        "diameter_m": 0.1,
+        "from_junction": 11,
+        "loss_coefficient": 1000.0,
+        "name": "sub_v1",
+        "opened": true,
+        "to_junction": 12,
+        "type": "valve"
+    },
+    {
+        "diameter_m": 0.1,
+        "from_junction": 16,
+        "loss_coefficient": 1000.0,
+        "name": "sub_v2",
+        "opened": true,
+        "to_junction": 17,
+        "type": "valve"
+    },
+    {
+        "diameter_m": 0.1,
+        "from_junction": 5,
+        "loss_coefficient": 1000.0,
+        "name": "tank_v1",
+        "opened": true,
+        "to_junction": 6,
+        "type": "valve"
+    },
+    {
+        "diameter_m": 0.1,
+        "from_junction": 19,
+        "loss_coefficient": 1000.0,
+        "name": "bypass",
+        "opened": true,
+        "to_junction": 20,
+        "type": "valve"
+    }
+]

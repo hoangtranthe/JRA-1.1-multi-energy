@@ -16,51 +16,54 @@ class CtrlValve(control.basic_controller.Controller):
         Example class of a Valve-Controller. Models an abstract control valve.
     """
 
-    def __init__(self, net, gid, data_source=None, profile_name=None, in_service=True, enable_plotting=False,
-                 mdot_set_kg_per_s=0, gain=-1000,
-                 recycle=True, order=0, level=0, tol=0, **kwargs):
+    def __init__(self, net, valve_id, data_source=None, profile_name=None, in_service=True, enable_plotting=False,
+                 name='', mdot_set_kg_per_s=0, gain=-1000, tol=0,
+                 recycle=True, order=0, level=0, **kwargs):
         super().__init__(net, in_service=in_service, recycle=recycle, order=order, level=level,
                          initial_powerflow=True, **kwargs)
 
-        # read generator attributes from net
-        self.gid = gid  # index of the controlled storage
-        self.from_junction = net.valve.at[gid, "from_junction"]
-        self.to_junction = net.valve.at[gid, "to_junction"]
-        self.diameter = net.valve.at[gid, "diameter_m"]
-        self.loss_coeff = net.valve.at[gid, "loss_coefficient"]
-        self.opened = net.valve.at[gid, "opened"]
-        self.name = net.valve.at[gid, "name"]
-        self.gen_type = net.valve.at[gid, "type"]
-        # self.mdot_from_kg_per_s = net.res_valve.at[gid, "mdot_from_kg_per_s"]
-        # self.in_service = net.valve.at[gid, "in_service"]
+        # Init related valve parameters from net
+        self.valve_id = valve_id  # index of the controlled valve
+        self.from_junction = net.valve.at[valve_id, "from_junction"]
+        self.to_junction = net.valve.at[valve_id, "to_junction"]
+        self.diameter = net.valve.at[valve_id, "diameter_m"]
+        self.loss_coeff = net.valve.at[valve_id, "loss_coefficient"]
+        self.opened = net.valve.at[valve_id, "opened"]
+
+        # Init controller attributes
+        self.in_service = bool(net.controller['in_service'].iloc[-1])
+        self.initial_run = bool(net.controller['initial_run'].iloc[-1])
+        self.level = net.controller['level'].iloc[-1]
+        self.order = net.controller['order'].iloc[-1]
+        self.recycle = bool(net.controller['recycle'].iloc[-1])
         self.applied = False
 
         # specific attributes
-        self.mdot_set_kg_per_s = mdot_set_kg_per_s
-        self.method = 'euler'
-        self.tolerance = tol  # absolute tolerance
-        self.i = 0
+        self.name = name  # Valve control name
+        self.mdot_set_kg_per_s = mdot_set_kg_per_s  # Mass flow setpoint - [kg/s]
+        self.tol = tol  # absolute tolerance
 
         # profile attributes
         self.data_source = data_source
         self.profile_name = profile_name
-        self.last_time_step = None
 
         # init pid control
+        self._init_pid_control(gain)
+
+        # init plot
+        self.enable_plotting = enable_plotting
+
+    def _init_pid_control(self, gain):
         self.pid = PID(gain, 0, 0)
         self.pid.output_limits = (None, None)  # Output will always be above 0, but with no upper bound
         self.loss_coeff_min = 0
         self.loss_coeff_max = 1e6
-
-        # init plot
-        self.enable_plotting = enable_plotting
 
     def initialize_control(self, net):
         """
         At the beginning of each run_control call reset applied-flag
         """
         self.pid.setpoint = self.mdot_set_kg_per_s
-        self.i = 0
 
         # clear plot
         if self.enable_plotting == True:
@@ -73,18 +76,16 @@ class CtrlValve(control.basic_controller.Controller):
 
     # Also remember that 'is_converged()' returns the boolean value of convergence:
     def is_converged(self, net):
-        mdot = np.nan_to_num(net.res_valve.at[self.gid, 'mdot_from_kg_per_s'])
+        mdot = np.nan_to_num(net.res_valve.at[self.valve_id, 'mdot_from_kg_per_s'])
         mdot_set = self.mdot_set_kg_per_s
-        name = self.name
 
         # Set absolute tolerance
-        loTol = mdot_set - self.tolerance
-        upTol = mdot_set + self.tolerance
+        loTol = mdot_set - self.tol
+        upTol = mdot_set + self.tol
 
         if loTol <= mdot <= upTol:
             # plt.show()
             self.applied = True
-            # print(f'Valve {self.name} successfully adjusted.')
         else:
             self.applied = False
         # check if controller already was applied
@@ -94,14 +95,13 @@ class CtrlValve(control.basic_controller.Controller):
     # data structure net.
     def write_to_net(self, net):
         # write p, q and soc_percent to bus within the net
-        net.valve.at[self.gid, "loss_coefficient"] = self.loss_coeff
-        net.valve.at[self.gid, "opened"] = self.opened
+        net.valve.at[self.valve_id, "loss_coefficient"] = self.loss_coeff
+        net.valve.at[self.valve_id, "opened"] = self.opened
 
     # In case the controller is not yet converged, the control step is executed. In the example it simply
     # adopts a new value according to the previously calculated target and writes back to the net.
     def control_step(self, net):
-        name = net.valve.at[self.gid, 'name']
-        mdot = np.nan_to_num(net.res_valve.at[self.gid, 'mdot_from_kg_per_s'])
+        mdot = np.nan_to_num(net.res_valve.at[self.valve_id, 'mdot_from_kg_per_s'])
         mdot_set = self.mdot_set_kg_per_s
 
         # Set valve status and position
@@ -126,11 +126,8 @@ class CtrlValve(control.basic_controller.Controller):
             self.opened = False
 
     def _set_valve_position(self, net):
-        # Get method
-        method = self.method
-
         # Get flow results
-        mdot = np.nan_to_num(net.res_valve.at[self.gid, 'mdot_from_kg_per_s'])
+        mdot = np.nan_to_num(net.res_valve.at[self.valve_id, 'mdot_from_kg_per_s'])
         mdot_set = self.mdot_set_kg_per_s
 
         # set valve position
@@ -148,10 +145,6 @@ class CtrlValve(control.basic_controller.Controller):
         else:
             self.loss_coeff = max
 
-        # Print new loss_coeff
-        self.i += 1
-        # print(f'Next loss coeff of {self.name} is y{self.i} = {self.loss_coeff}')
-
     # In a time-series simulation the battery should read new power values from a profile and keep track
     # of its state of charge as depicted below.
     def time_step(self, net, time):
@@ -164,14 +157,12 @@ class CtrlValve(control.basic_controller.Controller):
 
         self.applied = False  # reset applied variable
 
-    def set_mdot_setpoint(self, setpoint):
+    def set_mdot_setpoint(self, value):
         if self.profile_name is None:
-            self.mdot_set_kg_per_s = setpoint
+            self.mdot_set_kg_per_s = value
 
     def update_plot(self, net):
-        loss_coeff = self.loss_coeff
-
-        mdot = net.res_valve.at[self.gid, 'mdot_from_kg_per_s']
+        mdot = net.res_valve.at[self.valve_id, 'mdot_from_kg_per_s']
         mdot_set = self.mdot_set_kg_per_s
 
         error = (mdot_set - mdot) / mdot_set
@@ -185,4 +176,24 @@ class CtrlValve(control.basic_controller.Controller):
         self.line.set_ydata(self.ydata)
         plt.draw()
         plt.pause(1e-17)
-        # time.sleep(0.1)
+
+    def to_json(self):
+        return {'in_service': self.in_service,
+                'initial_run': self.initial_run,
+                'level': self.level,
+                'order': self.order,
+                'recycle': self.recycle,
+                'name': self.name,
+                'type': 'CtrlValve',
+                'object': {
+                    'data_source': self.data_source,
+                    'valve_id': self.valve_id,
+                    'mdot_set_kg_per_s': self.mdot_set_kg_per_s,
+                    'profile_name': self.profile_name,
+                    'tol': self.tol,
+                    'gain': self.pid.Kp,
+                    'loss_coeff_min': self.loss_coeff_min,
+                    'loss_coeff_max': self.loss_coeff_max,
+                    'enable_plotting': self.enable_plotting
+                }
+        }

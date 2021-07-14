@@ -1,0 +1,170 @@
+[
+    {
+        "height_m": 0.0,
+        "in_service": true,
+        "name": "n1s",
+        "pn_bar": 6.0,
+        "tfluid_k": 348.15,
+        "type": "junction"
+    },
+    {
+        "height_m": 0.0,
+        "in_service": true,
+        "name": "n1r",
+        "pn_bar": 6.0,
+        "tfluid_k": 348.15,
+        "type": "junction"
+    },
+    {
+        "height_m": 0.0,
+        "in_service": true,
+        "name": "n2s",
+        "pn_bar": 6.0,
+        "tfluid_k": 348.15,
+        "type": "junction"
+    },
+    {
+        "height_m": 0.0,
+        "in_service": true,
+        "name": "n2r",
+        "pn_bar": 6.0,
+        "tfluid_k": 348.15,
+        "type": "junction"
+    },
+    {
+        "height_m": 0.0,
+        "in_service": true,
+        "name": "n3s",
+        "pn_bar": 6.0,
+        "tfluid_k": 348.15,
+        "type": "junction"
+    },
+    {
+        "height_m": 0.0,
+        "in_service": true,
+        "name": "n3s_tank",
+        "pn_bar": 6.0,
+        "tfluid_k": 348.15,
+        "type": "junction"
+    },
+    {
+        "height_m": 0.0,
+        "in_service": true,
+        "name": "n3sv",
+        "pn_bar": 6.0,
+        "tfluid_k": 348.15,
+        "type": "junction"
+    },
+    {
+        "height_m": 0.0,
+        "in_service": true,
+        "name": "n3r",
+        "pn_bar": 6.0,
+        "tfluid_k": 348.15,
+        "type": "junction"
+    },
+    {
+        "height_m": 0.0,
+        "in_service": true,
+        "name": "n3r_tank",
+        "pn_bar": 6.0,
+        "tfluid_k": 348.15,
+        "type": "junction"
+    },
+    {
+        "height_m": 0.0,
+        "in_service": true,
+        "name": "n4s",
+        "pn_bar": 6.0,
+        "tfluid_k": 348.15,
+        "type": "junction"
+    },
+    {
+        "height_m": 0.0,
+        "in_service": true,
+        "name": "n4r",
+        "pn_bar": 6.0,
+        "tfluid_k": 348.15,
+        "type": "junction"
+    },
+    {
+        "height_m": 0.0,
+        "in_service": true,
+        "name": "n5sv",
+        "pn_bar": 6.0,
+        "tfluid_k": 348.15,
+        "type": "junction"
+    },
+    {
+        "height_m": 0.0,
+        "in_service": true,
+        "name": "n5s",
+        "pn_bar": 6.0,
+        "tfluid_k": 348.15,
+        "type": "junction"
+    },
+    {
+        "height_m": 0.0,
+        "in_service": true,
+        "name": "n5r",
+        "pn_bar": 6.0,
+        "tfluid_k": 348.15,
+        "type": "junction"
+    },
+    {
+        "height_m": 0.0,
+        "in_service": true,
+        "name": "n6s",
+        "pn_bar": 6.0,
+        "tfluid_k": 348.15,
+        "type": "junction"
+    },
+    {
+        "height_m": 0.0,
+        "in_service": true,
+        "name": "n6r",
+        "pn_bar": 6.0,
+        "tfluid_k": 348.15,
+        "type": "junction"
+    },
+    {
+        "height_m": 0.0,
+        "in_service": true,
+        "name": "n7sv",
+        "pn_bar": 6.0,
+        "tfluid_k": 348.15,
+        "type": "junction"
+    },
+    {
+        "height_m": 0.0,
+        "in_service": true,
+        "name": "n7s",
+        "pn_bar": 6.0,
+        "tfluid_k": 348.15,
+        "type": "junction"
+    },
+    {
+        "height_m": 0.0,
+        "in_service": true,
+        "name": "n7r",
+        "pn_bar": 6.0,
+        "tfluid_k": 348.15,
+        "type": "junction"
+    },
+    {
+        "height_m": 0.0,
+        "in_service": true,
+        "name": "n8s",
+        "pn_bar": 6.0,
+        "tfluid_k": 348.15,
+        "type": "junction"
+    },
+    {
+        "height_m": 0.0,
+        "in_service": true,
+        "name": "n8r",
+        "pn_bar": 6.0,
+        "tfluid_k": 348.15,
+        "type": "junction"
+    }
+]

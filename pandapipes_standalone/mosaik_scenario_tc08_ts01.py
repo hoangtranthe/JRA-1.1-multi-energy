@@ -54,7 +54,7 @@ PHYSICAL_STEP_SIZE = STEP_SIZE  # Physical evolution [s]
 CONTROL_STEP_SIZE = STEP_SIZE  # Flow control [s]
 PIPEFLOW_STEP_SIZE = STEP_SIZE
 OPTIMIZER_STEP_SIZE = STEP_SIZE  # Used for MPC controller [s]
-END = 12 * 60 * 60
+END = 72 * 60 * 60
 
 # # Set which day we are looking at.
 consumer_demand_series = pd.read_csv('./resources/heat/tc08ts01/distorted_heat_demand_load_profiles.csv', index_col=0, parse_dates=True)

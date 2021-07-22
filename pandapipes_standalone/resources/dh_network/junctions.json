@@ -5,6 +5,7 @@
         "name": "n1s",
         "pn_bar": 6.0,
         "tfluid_k": 348.15,
+		"geodata": [0, 1],
         "type": "junction"
     },
     {
@@ -13,6 +14,7 @@
         "name": "n1r",
         "pn_bar": 6.0,
         "tfluid_k": 348.15,
+		"geodata": [0, -2.1],
         "type": "junction"
     },
     {
@@ -21,6 +23,7 @@
         "name": "n2s",
         "pn_bar": 6.0,
         "tfluid_k": 348.15,
+		"geodata": [3, 1],
         "type": "junction"
     },
     {
@@ -29,6 +32,7 @@
         "name": "n2r",
         "pn_bar": 6.0,
         "tfluid_k": 348.15,
+		"geodata": [3, -2.1],
         "type": "junction"
     },
     {
@@ -37,6 +41,7 @@
         "name": "n3s",
         "pn_bar": 6.0,
         "tfluid_k": 348.15,
+		"geodata": [6, 1],
         "type": "junction"
     },
     {
@@ -45,6 +50,7 @@
         "name": "n3s_tank",
         "pn_bar": 6.0,
         "tfluid_k": 348.15,
+		"geodata": [6, 3],
         "type": "junction"
     },
     {
@@ -53,6 +59,7 @@
         "name": "n3sv",
         "pn_bar": 6.0,
         "tfluid_k": 348.15,
+		"geodata": [6, 1.4],
         "type": "junction"
     },
     {
@@ -61,6 +68,7 @@
         "name": "n3r",
         "pn_bar": 6.0,
         "tfluid_k": 348.15,
+		"geodata": [6, -2.1],
         "type": "junction"
     },
     {
@@ -69,6 +77,7 @@
         "name": "n3r_tank",
         "pn_bar": 6.0,
         "tfluid_k": 348.15,
+		"geodata": [6, -4.1],
         "type": "junction"
     },
     {
@@ -77,6 +86,7 @@
         "name": "n4s",
         "pn_bar": 6.0,
         "tfluid_k": 348.15,
+		"geodata": [10, 1],
         "type": "junction"
     },
     {
@@ -85,6 +95,7 @@
         "name": "n4r",
         "pn_bar": 6.0,
         "tfluid_k": 348.15,
+		"geodata": [11, -2.1],
         "type": "junction"
     },
     {
@@ -93,6 +104,7 @@
         "name": "n5sv",
         "pn_bar": 6.0,
         "tfluid_k": 348.15,
+		"geodata": [10, 1.5],
         "type": "junction"
     },
     {
@@ -101,6 +113,7 @@
         "name": "n5s",
         "pn_bar": 6.0,
         "tfluid_k": 348.15,
+		"geodata": [10, 4],
         "type": "junction"
     },
     {
@@ -109,6 +122,7 @@
         "name": "n5r",
         "pn_bar": 6.0,
         "tfluid_k": 348.15,
+		"geodata": [11, 4],
         "type": "junction"
     },
     {
@@ -117,6 +131,7 @@
         "name": "n6s",
         "pn_bar": 6.0,
         "tfluid_k": 348.15,
+		"geodata": [15, 1],
         "type": "junction"
     },
     {
@@ -125,6 +140,7 @@
         "name": "n6r",
         "pn_bar": 6.0,
         "tfluid_k": 348.15,
+		"geodata": [16, -2.1],
         "type": "junction"
     },
     {
@@ -133,6 +149,7 @@
         "name": "n7sv",
         "pn_bar": 6.0,
         "tfluid_k": 348.15,
+		"geodata": [15, 1.5],
         "type": "junction"
     },
     {
@@ -141,6 +158,7 @@
         "name": "n7s",
         "pn_bar": 6.0,
         "tfluid_k": 348.15,
+		"geodata": [15, 4],
         "type": "junction"
     },
     {
@@ -149,6 +167,7 @@
         "name": "n7r",
         "pn_bar": 6.0,
         "tfluid_k": 348.15,
+		"geodata": [16, 4],
         "type": "junction"
     },
     {
@@ -157,6 +176,7 @@
         "name": "n8s",
         "pn_bar": 6.0,
         "tfluid_k": 348.15,
+		"geodata": [19, 1],
         "type": "junction"
     },
     {
@@ -165,6 +185,7 @@
         "name": "n8r",
         "pn_bar": 6.0,
         "tfluid_k": 348.15,
+		"geodata": [19, -2.1],
         "type": "junction"
     }
 ]

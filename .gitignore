@@ -10,3 +10,6 @@ __pycache__/
 
 # Ignore results files
 *.h5
+
+# Ignore test results
+pandapipes_standalone/test/results.csv

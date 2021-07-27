@@ -78,12 +78,15 @@ plt.show()
 
 fig2, axes = plt.subplots(nrows=len(plt_dict.keys()), ncols=1) # two axes on figure
 
+df = pd.DataFrame(columns=plt_dict)
 for i, (title, variables) in enumerate(plt_dict.items()):
     #print(f"num, title, vars: {i}, {title}, {variables}", flush=True)
     axes[i].set_title(title)
     for v in variables:
         #print(v)
         axes[i].plot(results_dict[v], label=v)
+        df[v] = results_dict[v]
     axes[i].legend(loc="upper right")
 
 fig2.tight_layout()
+df.to_csv('results.csv')

@@ -63,7 +63,7 @@ plt_dict_network = {
     # 'voltage_control': [
     #          'hp_on_request', 'hp_off_request', 'state'
     #          ],
-    'Temperatures' : ['T_supply_cons1','T_supply_cons2','T_return_cons1','T_return_cons2','T_hot','T_return_tank','T_return_grid'],
+    'Temperatures' : ['T_supply_cons1','T_supply_cons2','T_return_cons1','T_return_cons2','T_tank_forward','T_return_tank','T_return_grid'],
     'Power': ['Qdot_cons1', 'Qdot_cons2', 'Qdot_evap'],
     # 'Power': ['P_el_setpoint_hp', 'W_requested', 'P_requested'],
     # 'Power': ['P_rated', 'P_hp_el_setpoint', 'P_effective'],

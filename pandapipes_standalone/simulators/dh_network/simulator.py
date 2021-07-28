@@ -155,27 +155,27 @@ class DHNetwork:
         mdot_kg_per_s = self.dhn_sim.get_value_of_network_component(name='sub_v1',
                                                     type='valve',
                                                     parameter='mdot_from_kg_per_s')
-        self.mdot_cons1 = round((mdot_kg_per_s), 2)
+        self.mdot_cons1 = round(mdot_kg_per_s, 2)
 
         mdot_kg_per_s = self.dhn_sim.get_value_of_network_component(name='sub_v2',
                                                     type='valve',
                                                     parameter='mdot_from_kg_per_s')
-        self.mdot_cons2 = round((mdot_kg_per_s), 2)
+        self.mdot_cons2 = round(mdot_kg_per_s, 2)
 
         mdot_kg_per_s = self.dhn_sim.get_value_of_network_component(name='bypass',
                                                     type='valve',
                                                     parameter='mdot_from_kg_per_s')
-        self.mdot_bypass = round((mdot_kg_per_s), 2)
+        self.mdot_bypass = round(mdot_kg_per_s, 2)
 
         mdot_kg_per_s = self.dhn_sim.get_value_of_network_component(name='grid_v1',
                                                     type='valve',
                                                     parameter='mdot_from_kg_per_s')
-        self.mdot_grid = round((mdot_kg_per_s), 2)
+        self.mdot_grid = round(mdot_kg_per_s, 2)
 
         mdot_kg_per_s = self.dhn_sim.get_value_of_network_component(name='tank_v1',
                                                     type='valve',
                                                     parameter='mdot_from_kg_per_s')
-        self.mdot_tank_out = round((mdot_kg_per_s), 2)
+        self.mdot_tank_out = round(mdot_kg_per_s, 2)
 
         self.mdot_tank_in = - self.mdot_tank_out
 

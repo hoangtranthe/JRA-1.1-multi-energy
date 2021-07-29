@@ -13,3 +13,4 @@ fmipp
 gurobipy
 pytest
 numba
+dh_network_simulator>=0.1.2

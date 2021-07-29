@@ -236,13 +236,29 @@ class DHNetwork:
         self.mdot_tank_out_set = - self.mdot_tank_in_set
         self.mdot_grid_set = self.mdot_cons1_set + self.mdot_cons2_set + self.mdot_bypass_set - self.mdot_tank_out_set
 
-        # # Update grid mass flow
+        # Update grid mass flow
         self.dhn_sim.set_value_of_network_component(name='sink_grid',
                                                     type='sink',
                                                     parameter='mdot_kg_per_s',
                                                     value=self.mdot_grid_set)
 
-        # # Update controller(s)
+        # Update tank mass flow
+        self.dhn_sim.set_value_of_network_component(name='sink_tank',
+                                                    type='sink',
+                                                    parameter='mdot_kg_per_s',
+                                                    value=self.mdot_tank_out_set)
+
+        # Update controller(s)
+        self.dhn_sim.set_value_of_network_component(name='grid_ctrl',
+                                                    type='controller',
+                                                    parameter='mdot_set_kg_per_s',
+                                                    value=self.mdot_grid_set)
+
+        self.dhn_sim.set_value_of_network_component(name='tank_ctrl',
+                                                    type='controller',
+                                                    parameter='mdot_set_kg_per_s',
+                                                    value=self.mdot_tank_out_set)
+
         self.dhn_sim.set_value_of_network_component(name='bypass_ctrl',
                                                     type='controller',
                                                     parameter='mdot_set_kg_per_s',
@@ -252,31 +268,19 @@ class DHNetwork:
                                                     type='controller',
                                                     parameter='mdot_set_kg_per_s',
                                                     value=self.mdot_cons1_set)
+
         self.dhn_sim.set_value_of_network_component(name='hex2_ctrl',
                                                     type='controller',
                                                     parameter='mdot_set_kg_per_s',
                                                     value=self.mdot_cons2_set)
 
-        self.dhn_sim.set_value_of_network_component(name='grid_ctrl',
-                                                    type='controller',
-                                                    parameter='mdot_set_kg_per_s',
-                                                    value=self.mdot_grid_set)
-        # # Update tank
-        self.dhn_sim.set_value_of_network_component(name='sink_tank',
-                                                    type='sink',
-                                                    parameter='mdot_kg_per_s',
-                                                    value=self.mdot_tank_out_set)
-
+        # Update tank
         self.dhn_sim.set_value_of_network_component(name='supply_tank',
                                                     type='ext_grid',
                                                     parameter='t_k',
                                                     value=self.T_tank_forward + 273.15)
 
-        self.dhn_sim.set_value_of_network_component(name='tank_ctrl',
-                                                    type='controller',
-                                                    parameter='mdot_set_kg_per_s',
-                                                    value=self.mdot_tank_out_set)
-        # # Update load
+        # Update load
         self.dhn_sim.set_value_of_network_component(name='hex1',
                                                     type='heat_exchanger',
                                                     parameter='qext_w',

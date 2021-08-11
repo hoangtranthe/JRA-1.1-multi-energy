@@ -4,10 +4,12 @@
 from dataclasses import dataclass, field
 from math import exp
 from ..util import clamp, log_mean, KBASE
-# from util import clamp, log_mean, KBASE # Used when testing the class locally
 
 @dataclass
 class ConstantTcondHP:
+    '''
+    Heat pump model with constant output temperature at the condenser.
+    '''
 
     # Unit parameters
     eta_sys: float = 0.80  # [n.u.] Relation between work provided by the pump and available thermodynamic work
@@ -76,12 +78,7 @@ class ConstantTcondHP:
         self.step_single()
 
 
-    ########################
-    # Methods used on-line #
-    ########################
-
     def step_single(self):
-
         # Logarithmic mean temperatures
         self.T_cond_L = log_mean(self.T_cond_in + KBASE, self.T_cond_out + KBASE)
         self.T_evap_L = log_mean(self.T_evap_in + KBASE, self.T_evap_out + KBASE)
@@ -103,7 +100,6 @@ class ConstantTcondHP:
         self.W_max = max(0.0, min(self.W_evap_max, self.W_cond_max, self.W_rated))
 
         # Mechanical work request/effective calculation
-
         Q_set_delta = 0.0
 
         if self.opmode == 'constant_T_out':
@@ -121,7 +117,6 @@ class ConstantTcondHP:
         self.Qdot_evap = self.Qdot_cond - self.W_effective
 
         # Output temperatures
-
         if self.mdot_cond_in == 0:
             self.T_cond_out = self.T_cond_out_target
         else:

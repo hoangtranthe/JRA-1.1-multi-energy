@@ -1,6 +1,5 @@
-"""
-    Models a district-integrated heat pump (one entity = one heat pump)
-"""
+# Copyright (c) 2021 by ERIGrid 2.0. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 from itertools import count
 from .simulator import WaterStorageTank
@@ -9,25 +8,28 @@ from typing import Dict
 from statistics import mean
 
 META = {
-        'models': {
-                   'WaterStorageTank': {
-                                        'public': True,
-                                        'params': [
-                                                   'INNER_HEIGHT', 'INNER_DIAMETER', 'INSULATION_THICKNESS', 'STEEL_THICKNESS', 'NB_LAYERS',
-                                                   'T_volume_initial','dt'
-                                                   ],
-                                        'attrs': [
-                                                  # Input
-                                                  'mdot_ch_in', 'mdot_dis_out', 'T_ch_in', 'T_dis_in',
-                                                  # Output
-                                                  'T_hot', 'T_cold', 'T_avg', 'mdot_ch_out', 'mdot_dis_in'
-                                                  ],
-                                        },
-                   },
-        }
+    'models': {
+        'WaterStorageTank': {
+            'public': True,
+            'params': [
+                'INNER_HEIGHT', 'INNER_DIAMETER', 'INSULATION_THICKNESS', 'STEEL_THICKNESS', 'NB_LAYERS',
+                'T_volume_initial','dt'
+                ],
+            'attrs': [
+                # Input
+                'mdot_ch_in', 'mdot_dis_out', 'T_ch_in', 'T_dis_in',
+                # Output
+                'T_hot', 'T_cold', 'T_avg', 'mdot_ch_out', 'mdot_dis_in'
+                ],
+            },
+        },
+    }
 
 
 class StratifiedWaterStorageTankSimulator(Simulator):
+    '''
+    Models a district-integrated heat pump (one entity = one heat pump).
+    '''
 
     step_size = 10
     eid_prefix = ''
@@ -42,6 +44,7 @@ class StratifiedWaterStorageTankSimulator(Simulator):
         self.entityparams = {}
         self.output_vars = {'T_hot', 'T_cold', 'T_avg', 'mdot_ch_out', 'mdot_dis_in'}
         self.input_vars = {'mdot_ch_in', 'mdot_dis_out', 'T_ch_in', 'T_dis_in'}
+
 
     def init(self, sid, step_size=10, eid_prefix="StratifiedWaterStorageTank"):
 
@@ -77,30 +80,25 @@ class StratifiedWaterStorageTankSimulator(Simulator):
 
             for attr, incoming in data.items():
                 if attr in self.input_vars:
-                    if 'T' in attr:
-                        newval = mean(val for val in incoming.values())
-                        setattr(esim, attr, newval)
+                    if 1 != len(incoming):
+                        raise RuntimeError('SimpleFlexHeatControllerSimulator does not support multiple inputs')
 
-                    elif 'mdot' in attr:
-                        newval = mean(-val for val in incoming.values())  # Reverse the sign of incoming mass flow values
-                        setattr(esim, attr, newval)
-
+                    if 'mdot' in attr:
+                        newval = -list(incoming.values())[0] # Reverse the sign of incoming mass flow values
                     else:
-                        newval = mean(val for val in incoming.values())
-                        setattr(esim, attr, newval)
+                        newval = list(incoming.values())[0]
+
+                    setattr(esim, attr, newval)
                 else:
                     raise AttributeError(f"StratifiedWaterStorageTankSimulator {eid} has no input attribute {attr}.")
 
-            # for _ in range(time - self.last_time):
-            #     esim.step_single()
             esim.step_single()
 
         self.last_time = time
-
         return time + self.step_size
 
-    def get_data(self, outputs):
 
+    def get_data(self, outputs):
         data = {}
 
         for eid, esim in self.simulators.items():

@@ -1,11 +1,10 @@
-"""
-This module is Pandapower model for Mosaik Sim API. Grid import could happen through Json or Excel files, and the file
-should exist in the working directory.
->>>> load_case(path to the file.json) or (path to the file.xlsx)
-"""
+# Copyright (c) 2021 by ERIGrid 2.0. All rights reserved.
+# Use of this source code is governed by LGPL-2.1.
+'''
+This is a modified version of the Mosaik Pandapower module.
+'''
 
 import json
-import math
 import os.path
 
 import pandas as pd
@@ -13,14 +12,7 @@ import pandapower as pp
 from pandapower.timeseries import DFData
 from pandapower.timeseries import OutputWriter
 from pandapower.control import ConstControl
-from pandapower.timeseries.run_time_series import run_timeseries, run_time_step, init_time_series
-import pandapower.networks as ppn
-
-#import simbench as sb
-import numpy as np
-import math
-
-
+from pandapower.timeseries.run_time_series import run_time_step, init_time_series
 
 class Pandapower(object):
 
@@ -28,39 +20,27 @@ class Pandapower(object):
         self.entity_map={}
 
 
-
     def load_case(self,path,grid_idx):
-        """
+        '''
         Loads a pandapower network, the network should be ready in a separate json or excel file
         TODO: pypower converter and network building with only parameter as input
-        """
+        '''
         loaders = {
           '.json': 1,
           '.xlsx': 2,
           # '': 3
           }
+
         try:
            ext = os.path.splitext(path)[-1]
            loader = loaders[ext]
         except KeyError:
-            raise ValueError("Don't know how to open '%s'" % path)
+            raise ValueError('Don\'t know how to open "{}"'.format(path))
 
         if loader == 1:
             self.net = pp.from_json(path)
         elif loader == 2:
             self.net = pp.from_excel(path)
-        # else:
-            # try:
-                # self.net = sb.get_simbench_net(path)
-            # except:
-                # if path == 'cigre_hv':
-                    # self.net = ppn.create_cigre_network_hv()
-                # elif path == 'cigre_mv_all':
-                    # self.net = ppn.create_cigre_network_mv(with_der='all')
-                # elif path == 'cigre_mv_pv_wind':
-                    # self.net = ppn.create_cigre_network_mv(with_der='pv_wind')
-                # elif path == 'cigre_lv':
-                    # self.net = ppn.create_cigre_network_lv()
 
         self.bus_id = self.net.bus.name.to_dict()
 
@@ -90,7 +70,7 @@ class Pandapower(object):
 
         if 'profiles' in self.net:
             time_steps = range(0, len(self.net.profiles['load']))
-            output_dir = os.path.join(os.getcwd(), "time_series_example")
+            output_dir = os.path.join(os.getcwd(), 'time_series_example')
             ow = create_output_writer(self.net, time_steps, output_dir)  # just created to update res_bus in each time step
             self.ts_variables = init_time_series(self.net, time_steps)
         else:
@@ -99,9 +79,8 @@ class Pandapower(object):
         return  ppc, entity_map
 
 
-
     def _get_slack(self, grid_idx):
-        """Create entity of the slack bus"""
+        '''Create entity of the slack bus'''
 
         self.slack_bus_idx = self.net.ext_grid.bus[0]
         bid = self.bus_id[self.slack_bus_idx]
@@ -119,9 +98,8 @@ class Pandapower(object):
         return slack
 
 
-
     def _get_buses(self,grid_idx):
-        """Create entities of the buses"""
+        '''Create entities of the buses'''
         buses = []
 
         for idx in self.bus_id:
@@ -144,9 +122,8 @@ class Pandapower(object):
         return buses
 
 
-
     def _get_loads(self, grid_idx):
-        """Create load entities"""
+        '''Create load entities'''
         loads = []
 
         for idx in self.load_id:
@@ -189,9 +166,8 @@ class Pandapower(object):
         return loads
 
 
-
     def _get_sgen(self, grid_idx):
-        """Create static generator entities"""
+        '''Create static generator entities'''
         sgens = []
 
         for idx in self.sgen_id:
@@ -199,11 +175,9 @@ class Pandapower(object):
              eid = make_eid(element['name'], grid_idx)
              bid = make_eid(self.bus_id[element['bus']], grid_idx)
 
-
              element_data = element.to_dict()
              keys_to_del = ['name', 'min_q_mvar', 'min_p_mw', 'max_q_mvar', 'max_p_mw']
              element_data_static = {key: element_data[key] for key in element_data if key not in keys_to_del}
-
 
              # time series calculation
              if 'profile' in element_data_static:
@@ -222,10 +196,8 @@ class Pandapower(object):
              else:
                  pass
 
-
              self.entity_map[eid] = {'etype': 'Sgen', 'idx': idx, 'static': element_data_static
                  , 'related': [bid]}
-
 
              sgens.append((bid, element['p_mw'], element['q_mvar'], element['scaling']
                            , element['in_service']))
@@ -233,9 +205,8 @@ class Pandapower(object):
         return sgens
 
 
-
     def _get_lines(self, grid_idx):
-        """create branches entities"""
+        '''create branches entities'''
         lines = []
 
         for idx in self.line_id:
@@ -244,10 +215,8 @@ class Pandapower(object):
             fbus = make_eid(self.bus_id[element['from_bus']], grid_idx)
             tbus = make_eid(self.bus_id[element['to_bus']], grid_idx)
 
-
             f_idx = self.entity_map[fbus]['idx']
             t_idx = self.entity_map[tbus]['idx']
-
 
             element_data= element.to_dict()
             keys_to_del = ['name', 'from_bus', 'to_bus']
@@ -263,9 +232,8 @@ class Pandapower(object):
         return lines
 
 
-
     def _get_trafos(self, grid_idx):
-        """Create tranformer entities"""
+        '''Create tranformer entities'''
         trafos = []
 
         if 0 == len(self.trafo_id):
@@ -297,9 +265,8 @@ class Pandapower(object):
         return trafos
 
 
-
     def set_inputs(self, etype, idx, data, static):
-        """setting the input from other simulators"""
+        '''setting the input from other simulators'''
 
         name = list(data.keys())[0]
         value = list(data.values())[0]
@@ -336,20 +303,19 @@ class Pandapower(object):
             raise ValueError('etype %s unknown' % etype)
 
 
-
     def powerflow(self):
-        """Conduct power flow"""
+        '''Conduct power flow'''
         pp.runpp(self.net)
 
+
     def powerflow_timeseries(self, time_step):
-        """Conduct power flow series"""
+        '''Conduct power flow series'''
 
         run_time_step(self.net, time_step, self.ts_variables, _ppc=True, is_elements=True)
 
 
-
     def get_cache_entries(self):
-        """cache the results of the power flow to be communicated to other simulators"""
+        '''cache the results of the power flow to be communicated to other simulators'''
 
         cache = {}
         case = self.net
@@ -373,12 +339,10 @@ class Pandapower(object):
                     data['p_mw'] = load['p_mw']
                     data['q_mvar'] = load['q_mvar']
 
-
                 elif etype == 'Sgen':
                     sgen = case.res_sgen.iloc[idx]
                     data['p_mw'] = sgen['p_mw']
                     data['q_mvar'] = sgen['q_mvar']
-
 
                 elif etype == 'Transformer':
                     trafo = case.res_trafo.iloc[idx]
@@ -412,20 +376,17 @@ class Pandapower(object):
                     data['va_lv_degree'] = float('nan')
                     data['loading_percent'] = float('nan')
 
-
             cache[eid] = data
         return cache
 
 
-
 def make_eid(name, grid_idx):
-    return '%s-%s' % (grid_idx, name)
-
+    return '%s_%s' % (name, grid_idx)
 
 
 def create_output_writer(net, time_steps, output_dir):
-    """Pandapower output to save results"""
-    ow = OutputWriter(net, time_steps, output_path=output_dir, output_file_type=".xls")
+    '''Pandapower output to save results'''
+    ow = OutputWriter(net, time_steps, output_path=output_dir, output_file_type='.xls')
     # these variables are saved to the harddisk after / during the time series loop
     ow.log_variable('res_load', 'p_mw')
     ow.log_variable('res_load', 'q_mvar')
@@ -441,31 +402,3 @@ def create_output_writer(net, time_steps, output_dir):
     ow.log_variable('res_sgen', 'q_mvar')
 
     return ow
-
-
-
-
-
-
-
-
-
-
-
-
-if __name__ == "__main__":
-    ppc = pandapower()
-    x,y = ppc.load_case('cigre_mv_all',0)
-    buss = ppc._get_buses(0)
-    #busx=ppc._get_loads()
-    #busxx = ppc._get_loads(0)
-    #busy=ppc._get_branches()
-    #buso=ppc._get_trafos()
-    #busz=ppc._get_sgen()
-   # ppc.entity_map()
-    #ppc.powerflow()
-   # xx=ppc.get_cache_entries()
-    #res= ppc.get_results()
-    #print(res)
-
-

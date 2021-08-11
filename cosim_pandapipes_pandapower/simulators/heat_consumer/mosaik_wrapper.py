@@ -1,26 +1,33 @@
+# Copyright (c) 2021 by ERIGrid 2.0. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
+'''
+Model of the heat exchanger substation at the consumer side.
+'''
+
 from itertools import count
-from .simulator import TSSim
+from .simulator import HEXConsumer
 from mosaik_api import Simulator
 from typing import Dict
-from statistics import mean
 
 META = {
     'models': {
-        'TSSim': {
+        'HEXConsumer': {
             'public': True,
             'params': [
-                't_start', 'series', 'fieldname', 'interp_method', 'scale'
+                'T_return_target', 'P_heat', 'mdot_hex_in', 'mdot_hex_out',
             ],
             'attrs': [
+                # Input
+                'P_heat', 'T_supply',
                 # Output
-                'P',
+                'mdot_hex_out', 'mdot_hex_in', 'T_return'
             ],
         },
     },
 }
 
 
-class TSSimSimulator(Simulator):
+class HEXConsumerSimulator(Simulator):
 
     step_size = 10
     eid_prefix = ''
@@ -31,12 +38,12 @@ class TSSimSimulator(Simulator):
 
         # Per-entity dicts
         self.eid_counters = {}
-        self.simulators: Dict[str, TSSim] = {}
+        self.simulators: Dict[HEXConsumer] = {}
         self.entityparams = {}
-        self.output_vars = {'P'}
-        self.input_vars = {}
+        self.output_vars = {'mdot_hex_out', 'mdot_hex_in', 'T_return'}
+        self.input_vars = {'P_heat', 'T_supply'}
 
-    def init(self, sid, step_size=10, eid_prefix="TSSim"):
+    def init(self, sid, step_size=10, eid_prefix="HEXConsumer"):
 
         self.step_size = step_size
         self.eid_prefix = eid_prefix
@@ -48,10 +55,11 @@ class TSSimSimulator(Simulator):
         entities = []
 
         for _ in range(num):
+
             eid = '%s_%s' % (self.eid_prefix, next(counter))
 
             self.entityparams[eid] = model_params
-            esim = TSSim(step_size = self.step_size,**model_params)
+            esim = HEXConsumer(**model_params)
 
             self.simulators[eid] = esim
 
@@ -65,12 +73,17 @@ class TSSimSimulator(Simulator):
 
             for attr, incoming in data.items():
                 if attr in self.input_vars:
-                    newval = mean(val for val in incoming.values())
-                    setattr(esim, attr, newval)
-                else:
-                    raise AttributeError(f"TSSimSimulator {eid} has no input attribute {attr}.")
+                    if 1 != len(incoming):
+                        raise RuntimeError('HEXConsumerSimulator does not support multiple inputs')
 
-            esim.step_single(t=time)
+                    newval = list(incoming.values())[0]
+                    setattr(esim, attr, newval)
+
+                else:
+                    raise AttributeError(f"HEXConsumerSimulator {eid} has no input attribute {attr}.")
+
+            for _ in range(time - self.last_time):
+                esim.step_single()
 
         self.last_time = time
 
@@ -87,12 +100,10 @@ class TSSimSimulator(Simulator):
                 if attr in self.input_vars or attr in self.output_vars:
                     mydata[attr] = getattr(esim, attr)
                 else:
-                    raise AttributeError(f"TSSimSimulator {eid} has no attribute {attr}.")
+                    raise AttributeError(f"HEXConsumerSimulator {eid} has no attribute {attr}.")
             data[eid] = mydata
-
         return data
 
 
 if __name__ == '__main__':
-
-    test = TSSimSimulator()
+    test = HEXConsumerSimulator()

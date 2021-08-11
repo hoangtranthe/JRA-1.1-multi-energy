@@ -1,28 +1,20 @@
 # Copyright (c) 2021 by ERIGrid 2.0. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
-"""
-    Time series player/simulator
-"""
-
-import matplotlib.pyplot as plt
 import pandas as pd
 from pandas.tseries.offsets import DateOffset
-from dataclasses import dataclass, field
-import numpy as np
+from dataclasses import dataclass
 import datetime
-import os
-from pathlib import Path
 
 @dataclass
-class TSSim:
-    """
-        Time series simulator that plays a given time series at the given date.
-    """
+class TimeSeriesPlayer:
+    '''
+    Time series simulator that plays a given time series at the given date.
+    '''
 
     # Parameters
     t_start: datetime.datetime = None
-    fieldname: str = 'P'  # Name of the field in the dataframe to use.
+    fieldname: str = 'in'  # Name of the field in the dataframe to use.
     step_size: int = None
     interp_method: str = 'linear'
     scale: float = 1.
@@ -34,9 +26,14 @@ class TSSim:
     ## Input
     series: pd.DataFrame() = None
 
+    ## Output
+    out: float = None
+
+
     def __post_init__(self):
         self.sim_check()
         self.step_single(0)
+
 
     def sim_check(self):
         self.t_start = pd.to_datetime(self.t_start)
@@ -56,26 +53,18 @@ class TSSim:
 
         assert self.t_start in self.series.index, "Simulation starting date: \"{0}\", is not in time series input.".format(self.t_start)
 
+
     def step_single(self, t):
-
-            """
-            Method to update the time serie simulator power draw.
+            '''
+            Method to update the time series simulator output
             input: simulation time
-            output: active power draw -> P
-            """
-
+            output: time series value
+            '''
             self.cur_t = self.t_start + pd.Timedelta(seconds=t)
 
             if self.cur_t in self.series.index:
-                self.P = self.scale * self.series[self.fieldname][self.cur_t]
+                self.out = self.scale * self.series[self.fieldname][self.cur_t]
 
             else:
-                ix = np.searchsorted(self.series[self.fieldname].index, self.cur_t)
-
-                if ix == 0:
-                    self.P = self.scale * self.series[self.fieldname].iloc[0]  # Return first value
-                elif ix == len(self.series[self.fieldname]):
-                    self.P = self.scale * self.series[self.fieldname].iloc[-1]  # Return last value
-                else:
-                    raise RuntimeError('timestamp not available')
+                raise RuntimeError('timestamp not available')
 

@@ -1,19 +1,16 @@
+# Copyright (c) 2021 by ERIGrid 2.0. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
+
 import numpy as np
-import matplotlib.pyplot as plt
-import pandapower as ppo
-import pandapipes as ppi
 import pandapower.control as control
 from simple_pid import PID
-import pandas as pd
-import pandapower.timeseries as ts
-from simple_pid import PID
-import time
-import random
+# import matplotlib.pyplot as plt
+# import time
 
 
 class CtrlValve(control.basic_controller.Controller):
     """
-        Example class of a Valve-Controller. Models an abstract control valve.
+    Example class of a Valve-Controller. Models an abstract control valve.
     """
 
     def __init__(self, net, gid, data_source=None, profile_name=None, in_service=True, enable_plotting=False,
@@ -52,8 +49,8 @@ class CtrlValve(control.basic_controller.Controller):
         self.loss_coeff_min = 0
         self.loss_coeff_max = 1e6
 
-        # init plot
-        self.enable_plotting = enable_plotting
+        # # init plot
+        # self.enable_plotting = enable_plotting
 
     def initialize_control(self, net):
         """
@@ -62,14 +59,14 @@ class CtrlValve(control.basic_controller.Controller):
         self.pid.setpoint = self.mdot_set_kg_per_s
         self.i = 0
 
-        # clear plot
-        if self.enable_plotting == True:
-            self.axes = plt.gca()
-            self.axes.set_xlim(0, 100)
-            self.axes.set_ylim(0, 1)
-            self.xdata = []
-            self.ydata = []
-            self.line, = self.axes.plot([], [], 'b')
+        # # clear plot
+        # if self.enable_plotting == True:
+            # self.axes = plt.gca()
+            # self.axes.set_xlim(0, 100)
+            # self.axes.set_ylim(0, 1)
+            # self.xdata = []
+            # self.ydata = []
+            # self.line, = self.axes.plot([], [], 'b')
 
     # Also remember that 'is_converged()' returns the boolean value of convergence:
     def is_converged(self, net):
@@ -109,9 +106,9 @@ class CtrlValve(control.basic_controller.Controller):
         if self.opened:
             self._set_valve_position(net)
 
-        # Update plot
-        if self.enable_plotting == True:
-            self.update_plot(net)
+        # # Update plot
+        # if self.enable_plotting == True:
+            # self.update_plot(net)
 
         # Call write_to_net and set the applied variable True
         self.write_to_net(net)
@@ -168,21 +165,21 @@ class CtrlValve(control.basic_controller.Controller):
         if self.profile_name is None:
             self.mdot_set_kg_per_s = setpoint
 
-    def update_plot(self, net):
-        loss_coeff = self.loss_coeff
+    # def update_plot(self, net):
+        # loss_coeff = self.loss_coeff
 
-        mdot = net.res_valve.at[self.gid, 'mdot_from_kg_per_s']
-        mdot_set = self.mdot_set_kg_per_s
+        # mdot = net.res_valve.at[self.gid, 'mdot_from_kg_per_s']
+        # mdot_set = self.mdot_set_kg_per_s
 
-        error = (mdot_set - mdot) / mdot_set
-        error_abs = np.sqrt(np.power(error, 2))
+        # error = (mdot_set - mdot) / mdot_set
+        # error_abs = np.sqrt(np.power(error, 2))
 
-        # self.xdata.append(loss_coeff)
-        self.xdata.append(self.i)
-        self.ydata.append(error_abs)
+        # # self.xdata.append(loss_coeff)
+        # self.xdata.append(self.i)
+        # self.ydata.append(error_abs)
 
-        self.line.set_xdata(self.xdata)
-        self.line.set_ydata(self.ydata)
-        plt.draw()
-        plt.pause(1e-17)
-        # time.sleep(0.1)
+        # self.line.set_xdata(self.xdata)
+        # self.line.set_ydata(self.ydata)
+        # plt.draw()
+        # plt.pause(1e-17)
+        # # time.sleep(0.1)

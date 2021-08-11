@@ -1,32 +1,28 @@
-"""
-    Model of the heat exchanger substation at the consumer side.
-"""
+# Copyright (c) 2021 by ERIGrid 2.0. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
 from itertools import count
-from .simulator import HEXConsumer
+from .simulator import TimeSeriesPlayer
 from mosaik_api import Simulator
 from typing import Dict
-from statistics import mean
 
 META = {
     'models': {
-        'HEXConsumer': {
+        'TimeSeriesPlayer': {
             'public': True,
             'params': [
-                'T_return_target', 'P_heat', 'mdot_hex_in', 'mdot_hex_out',
+                't_start', 'series', 'fieldname', 'interp_method', 'scale'
             ],
             'attrs': [
-                # Input
-                'P_heat', 'T_supply',
                 # Output
-                'mdot_hex_out', 'mdot_hex_in', 'T_return'
+                'out',
             ],
         },
     },
 }
 
 
-class HEXConsumerSimulator(Simulator):
+class TimeSeriesPlayerSim(Simulator):
 
     step_size = 10
     eid_prefix = ''
@@ -37,12 +33,12 @@ class HEXConsumerSimulator(Simulator):
 
         # Per-entity dicts
         self.eid_counters = {}
-        self.simulators: Dict[HEXConsumer] = {}
+        self.simulators: Dict[str, TimeSeriesPlayer] = {}
         self.entityparams = {}
-        self.output_vars = {'mdot_hex_out', 'mdot_hex_in', 'T_return'}
-        self.input_vars = {'P_heat', 'T_supply'}
+        self.output_vars = {'out'}
+        self.input_vars = {}
 
-    def init(self, sid, step_size=10, eid_prefix="HEXConsumer"):
+    def init(self, sid, step_size = 10, eid_prefix = 'TimeSeriesPlayer'):
 
         self.step_size = step_size
         self.eid_prefix = eid_prefix
@@ -54,11 +50,10 @@ class HEXConsumerSimulator(Simulator):
         entities = []
 
         for _ in range(num):
-
             eid = '%s_%s' % (self.eid_prefix, next(counter))
 
             self.entityparams[eid] = model_params
-            esim = HEXConsumer(**model_params)
+            esim = TimeSeriesPlayer(step_size = self.step_size,**model_params)
 
             self.simulators[eid] = esim
 
@@ -69,17 +64,10 @@ class HEXConsumerSimulator(Simulator):
     def step(self, time, inputs):
         for eid, esim in self.simulators.items():
             data = inputs.get(eid, {})
+            if not 0 == len(data):
+                RuntimeError('TimeSeriesPlayerSimulator has no input attributes.')
 
-            for attr, incoming in data.items():
-                if attr in self.input_vars:
-                    newval = mean(val for val in incoming.values())
-                    setattr(esim, attr, newval)
-
-                else:
-                    raise AttributeError(f"HEXConsumerSimulator {eid} has no input attribute {attr}.")
-
-            for _ in range(time - self.last_time):
-                esim.step_single()
+            esim.step_single(t=time)
 
         self.last_time = time
 
@@ -96,10 +84,12 @@ class HEXConsumerSimulator(Simulator):
                 if attr in self.input_vars or attr in self.output_vars:
                     mydata[attr] = getattr(esim, attr)
                 else:
-                    raise AttributeError(f"HEXConsumerSimulator {eid} has no attribute {attr}.")
+                    raise AttributeError(f"TimeSeriesPlayerSimulator {eid} has no attribute {attr}.")
             data[eid] = mydata
+
         return data
 
 
 if __name__ == '__main__':
-    test = HEXConsumerSimulator()
+
+    test = TimeSeriesPlayerSimulator()

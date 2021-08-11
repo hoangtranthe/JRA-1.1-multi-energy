@@ -1,12 +1,13 @@
-"""
-    Model of the voltage controller.
-"""
+# Copyright (c) 2021 by ERIGrid 2.0. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
+'''
+Model of the voltage controller.
+'''
 
 from itertools import count
 from .simulator import VoltageController
 from mosaik_api import Simulator
 from typing import Dict
-from statistics import mean
 
 META = {
     'models': {

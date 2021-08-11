@@ -1,12 +1,13 @@
-"""
-    Models a district-integrated heat pump (one entity = one heat pump)
-"""
+# Copyright (c) 2021 by ERIGrid 2.0. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
+'''
+Models a district-integrated heat pump (one entity = one heat pump)
+'''
 
 from itertools import count
 from .simulator import ConstantTcondHP
 from mosaik_api import Simulator
 from typing import Dict
-from statistics import mean
 
 META = {
     'models': {
@@ -57,7 +58,6 @@ class ConstantTcondHPSimulator(Simulator):
         return self.meta
 
     def create(self, num, model, **model_params):
-
         counter = self.eid_counters.setdefault(model, count())
         entities = []
 
@@ -81,14 +81,15 @@ class ConstantTcondHPSimulator(Simulator):
 
             for attr, incoming in data.items():
                 if attr in self.input_vars:
+                    if 1 != len(incoming):
+                        raise RuntimeError('ConstantTcondHPSimulator does not support multiple inputs')
+
                     if 'mdot' in attr:
-                        newval = mean(-val for val in incoming.values())  # Flip the sign of incoming mass flows to comply with generator convention.
-                        setattr(esim, attr, newval)
-
+                        newval = -list(incoming.values())[0]
                     else:
-                        newval = mean(val for val in incoming.values())
-                        setattr(esim, attr, newval)
+                        newval = list(incoming.values())[0]
 
+                    setattr(esim, attr, newval)
                 else:
                     raise AttributeError(f"ConstantTcondHPSim {eid} has no input attribute {attr}.")
 
@@ -116,8 +117,3 @@ class ConstantTcondHPSimulator(Simulator):
             data[eid] = mydata
 
         return data
-
-
-if __name__ == '__main__':
-
-    test = ConstantTcondHPSimulator()

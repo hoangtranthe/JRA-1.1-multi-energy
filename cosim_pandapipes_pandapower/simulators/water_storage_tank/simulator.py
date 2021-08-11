@@ -1,18 +1,16 @@
 # Copyright (c) 2021 by ERIGrid 2.0. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 
-"""Stratified water storage tank model."""
-
-import matplotlib.pyplot as plt
-import pandas as pd
 from dataclasses import dataclass, field
 import numpy as np
+from ..util import KBASE
 
-
-KBASE = 273.15
 
 @dataclass
 class WaterStorageTank:
+    '''
+    Stratified water storage tank model.
+    '''
 
     # Constants
     Cp_water: float = 4180  # Heat capacity - [J/(kg*degK)]
@@ -135,20 +133,18 @@ class WaterStorageTank:
         self.T_cold = self.T_volume_initial  # Temperature at the bottom of the tank - [degK]
         self.T_out = self.T_volume_initial  # Outlet temperature from the water tank - [degK]
 
-    def initialize_stratification(self):
 
+    def initialize_stratification(self):
         self.Layers_list = list(np.arange(self.NB_LAYERS))
         self.LAYER_LENGTH = self.INNER_HEIGHT / self.NB_LAYERS
         self.LAYER_WATER_MASS = self.WATER_MASS / self.NB_LAYERS
         self.LAYER_WALL_AREA = 2 * np.pi * self.INNER_RADIUS**2 + 2 * np.pi * self.INNER_RADIUS * self.LAYER_LENGTH
 
         for layer in self.Layers_list:
-
             self.Layers_temperature_dict[layer] = self.T_volume_initial
 
 
     def step_single(self):
-
         # Charging mode
         if self.mdot_ch_in > 0:
 
@@ -157,7 +153,6 @@ class WaterStorageTank:
             self.mdot_up = 0.0
 
             for layer in self.Layers_list:
-
                 # Top of the tank boundary layer
                 if layer == 0:
                     self.Layers_temperature_dict[layer] = (
@@ -197,16 +192,13 @@ class WaterStorageTank:
                         ) * self.dt + self.Layers_temperature_dict[layer]
 
                 else:
-
                     raise ValueError("Layer {0} is unknown".format(layer))
-
 
                 self.T_out = self.Layers_temperature_dict[self.Layers_list[-1:][0]]
 
 
         # Discharging mode (can be at the same time)
         if self.mdot_dis_out < 0:
-
             self.mdot_dis_in = - self.mdot_dis_out
             self.mdot_up = - self.mdot_dis_out
             self.mdot_down = 0.0
@@ -218,43 +210,38 @@ class WaterStorageTank:
                 if layer == self.Layers_list[-1:][0]:
 
                     self.Layers_temperature_dict[layer] = (
-                                                           (
-                                                            (self.LAMBDA_WALL + self.DELTA_LAMBDA) * self.CROSS_SECTIONAL_WATER_AREA / self.LAYER_LENGTH * (self.Layers_temperature_dict[layer-1] - self.Layers_temperature_dict[layer]) \
-                                                            + self.U_WALL * self.LAYER_WALL_AREA * (self.T_environment - self.Layers_temperature_dict[layer])
-                                                            - self.mdot_up * self.Cp_water * self.Layers_temperature_dict[layer]
-                                                            - self.mdot_dis_out * self.Cp_water * self.T_dis_in
-                                                            )
-                                                            / (self.LAYER_WATER_MASS * self.Cp_water)
-                                                           ) * self.dt + self.Layers_temperature_dict[layer]
+                        (
+                            (self.LAMBDA_WALL + self.DELTA_LAMBDA) * self.CROSS_SECTIONAL_WATER_AREA / self.LAYER_LENGTH * (self.Layers_temperature_dict[layer-1] - self.Layers_temperature_dict[layer]) \
+                            + self.U_WALL * self.LAYER_WALL_AREA * (self.T_environment - self.Layers_temperature_dict[layer])
+                            - self.mdot_up * self.Cp_water * self.Layers_temperature_dict[layer]
+                            - self.mdot_dis_out * self.Cp_water * self.T_dis_in
+                            ) / (self.LAYER_WATER_MASS * self.Cp_water)
+                        ) * self.dt + self.Layers_temperature_dict[layer]
 
                 # Intermediate layers
                 elif (layer != 0 and layer != self.Layers_list[-1:][0]):
                     self.Layers_temperature_dict[layer] =  (
-                                                            (
-                                                             (self.LAMBDA_WALL + self.DELTA_LAMBDA) * self.CROSS_SECTIONAL_WATER_AREA / self.LAYER_LENGTH * (self.Layers_temperature_dict[layer+1] - self.Layers_temperature_dict[layer]) \
-                                                             +(self.LAMBDA_WALL + self.DELTA_LAMBDA) * self.CROSS_SECTIONAL_WATER_AREA / self.LAYER_LENGTH * (self.Layers_temperature_dict[layer-1] - self.Layers_temperature_dict[layer]) \
-                                                             + self.U_WALL * self.LAYER_WALL_AREA * (self.T_environment - self.Layers_temperature_dict[layer])
-                                                             + self.mdot_up * self.Cp_water * self.Layers_temperature_dict[layer+1]
-                                                             - self.mdot_up * self.Cp_water * self.Layers_temperature_dict[layer]
-                                                             )
-                                                             / (self.LAYER_WATER_MASS * self.Cp_water)
-                                                            ) * self.dt + self.Layers_temperature_dict[layer]
+                        (
+                            (self.LAMBDA_WALL + self.DELTA_LAMBDA) * self.CROSS_SECTIONAL_WATER_AREA / self.LAYER_LENGTH * (self.Layers_temperature_dict[layer+1] - self.Layers_temperature_dict[layer]) \
+                            +(self.LAMBDA_WALL + self.DELTA_LAMBDA) * self.CROSS_SECTIONAL_WATER_AREA / self.LAYER_LENGTH * (self.Layers_temperature_dict[layer-1] - self.Layers_temperature_dict[layer]) \
+                            + self.U_WALL * self.LAYER_WALL_AREA * (self.T_environment - self.Layers_temperature_dict[layer])
+                            + self.mdot_up * self.Cp_water * self.Layers_temperature_dict[layer+1]
+                            - self.mdot_up * self.Cp_water * self.Layers_temperature_dict[layer]
+                            ) / (self.LAYER_WATER_MASS * self.Cp_water)
+                        ) * self.dt + self.Layers_temperature_dict[layer]
 
                 # Top of the tank boundary layer
                 elif layer == 0:
                     self.Layers_temperature_dict[layer] = (
-                                                           (
-                                                            (self.LAMBDA_WALL + self.DELTA_LAMBDA) * self.CROSS_SECTIONAL_WATER_AREA / self.LAYER_LENGTH * (self.Layers_temperature_dict[layer+1] - self.Layers_temperature_dict[layer]) \
-                                                            + self.U_WALL * self.LAYER_WALL_AREA * (self.T_environment - self.Layers_temperature_dict[layer])
-                                                            + self.mdot_up * self.Cp_water * self.Layers_temperature_dict[layer+1]
-                                                            - self.mdot_dis_in * self.Cp_water * self.Layers_temperature_dict[layer]
-                                                            ) \
-                                                            / (self.LAYER_WATER_MASS * self.Cp_water)
-                                                           ) * self.dt + self.Layers_temperature_dict[layer]
-
+                        (
+                            (self.LAMBDA_WALL + self.DELTA_LAMBDA) * self.CROSS_SECTIONAL_WATER_AREA / self.LAYER_LENGTH * (self.Layers_temperature_dict[layer+1] - self.Layers_temperature_dict[layer]) \
+                            + self.U_WALL * self.LAYER_WALL_AREA * (self.T_environment - self.Layers_temperature_dict[layer])
+                            + self.mdot_up * self.Cp_water * self.Layers_temperature_dict[layer+1]
+                            - self.mdot_dis_in * self.Cp_water * self.Layers_temperature_dict[layer]
+                            ) / (self.LAYER_WATER_MASS * self.Cp_water)
+                        ) * self.dt + self.Layers_temperature_dict[layer]
                 else:
                     raise ValueError("Layer {0} is unknown".format(layer))
-
 
                 self.T_out = self.Layers_temperature_dict[self.Layers_list[-1:][0]]
 
@@ -263,39 +250,31 @@ class WaterStorageTank:
         elif self.mdot_ch_in == 0 and self.mdot_dis_out == 0:
 
             for layer in self.Layers_list:
-
                 if layer == 0:
-
                     self.Layers_temperature_dict[layer] = (
-                                                            (
-                                                             (self.LAMBDA_WALL + self.DELTA_LAMBDA) * self.CROSS_SECTIONAL_WATER_AREA / self.LAYER_LENGTH * (self.Layers_temperature_dict[layer+1] - self.Layers_temperature_dict[layer]) \
-                                                             + self.U_WALL * self.LAYER_WALL_AREA * (self.T_environment - self.Layers_temperature_dict[layer])
-                                                             )
-                                                             / (self.LAYER_WATER_MASS * self.Cp_water)
-                                                            ) * self.dt + self.Layers_temperature_dict[layer]
+                        (
+                            (self.LAMBDA_WALL + self.DELTA_LAMBDA) * self.CROSS_SECTIONAL_WATER_AREA / self.LAYER_LENGTH * (self.Layers_temperature_dict[layer+1] - self.Layers_temperature_dict[layer]) \
+                            + self.U_WALL * self.LAYER_WALL_AREA * (self.T_environment - self.Layers_temperature_dict[layer])
+                            ) / (self.LAYER_WATER_MASS * self.Cp_water)
+                        ) * self.dt + self.Layers_temperature_dict[layer]
 
                 elif (layer != 0 and layer != self.Layers_list[-1:][0]):
-
                     self.Layers_temperature_dict[layer] =  (
-                                                            (
-                                                             (self.LAMBDA_WALL + self.DELTA_LAMBDA) * self.CROSS_SECTIONAL_WATER_AREA / self.LAYER_LENGTH * (self.Layers_temperature_dict[layer+1] - self.Layers_temperature_dict[layer]) \
-                                                             +(self.LAMBDA_WALL + self.DELTA_LAMBDA) * self.CROSS_SECTIONAL_WATER_AREA / self.LAYER_LENGTH * (self.Layers_temperature_dict[layer-1] - self.Layers_temperature_dict[layer]) \
-                                                             + self.U_WALL * self.LAYER_WALL_AREA * (self.T_environment - self.Layers_temperature_dict[layer]) \
-                                                             )
-                                                             / (self.LAYER_WATER_MASS * self.Cp_water)
-                                                            ) * self.dt + self.Layers_temperature_dict[layer]
+                        (
+                            (self.LAMBDA_WALL + self.DELTA_LAMBDA) * self.CROSS_SECTIONAL_WATER_AREA / self.LAYER_LENGTH * (self.Layers_temperature_dict[layer+1] - self.Layers_temperature_dict[layer]) \
+                            +(self.LAMBDA_WALL + self.DELTA_LAMBDA) * self.CROSS_SECTIONAL_WATER_AREA / self.LAYER_LENGTH * (self.Layers_temperature_dict[layer-1] - self.Layers_temperature_dict[layer]) \
+                            + self.U_WALL * self.LAYER_WALL_AREA * (self.T_environment - self.Layers_temperature_dict[layer]) \
+                            ) / (self.LAYER_WATER_MASS * self.Cp_water)
+                        ) * self.dt + self.Layers_temperature_dict[layer]
 
                 elif layer == self.Layers_list[-1:][0]:
-
                     self.Layers_temperature_dict[layer] = (
-                                                           (
-                                                            (self.LAMBDA_WALL + self.DELTA_LAMBDA) * self.CROSS_SECTIONAL_WATER_AREA / self.LAYER_LENGTH * (self.Layers_temperature_dict[layer-1] - self.Layers_temperature_dict[layer]) \
-                                                            + self.U_WALL * self.LAYER_WALL_AREA * (self.T_environment - self.Layers_temperature_dict[layer]) \
-                                                            )
-                                                            / (self.LAYER_WATER_MASS * self.Cp_water) \
-                                                           ) * self.dt + self.Layers_temperature_dict[layer]
+                        (
+                            (self.LAMBDA_WALL + self.DELTA_LAMBDA) * self.CROSS_SECTIONAL_WATER_AREA / self.LAYER_LENGTH * (self.Layers_temperature_dict[layer-1] - self.Layers_temperature_dict[layer]) \
+                            + self.U_WALL * self.LAYER_WALL_AREA * (self.T_environment - self.Layers_temperature_dict[layer]) \
+                            ) / (self.LAYER_WATER_MASS * self.Cp_water) \
+                        ) * self.dt + self.Layers_temperature_dict[layer]
                 else:
-
                     raise ValueError("Layer {0} is unknown".format(layer))
 
             self.T_out = self.Layers_temperature_dict[self.Layers_list[-1:][0]]
@@ -306,7 +285,11 @@ class WaterStorageTank:
         self.T_hot = self.Layers_temperature_dict[0]
         self.T_cold = self.Layers_temperature_dict[self.Layers_list[-1:][0]]
 
+
 if __name__ == '__main__':
+
+    import matplotlib.pyplot as plt
+    import pandas as pd
 
     Test = WaterStorageTank()
 
@@ -316,55 +299,45 @@ if __name__ == '__main__':
     outlet_temp_df = pd.DataFrame(index=np.arange(sim_time), columns=["T_out"])
 
     for time_step in range(sim_time):
-
         if time_step < 60*60*1:
-
             setattr(Test, "T_in", 80)
             setattr(Test, "mdot_in", 0.5)
 
             Test.step_single()
 
             for layer, temperature in Test.Layers_temperature_dict.items():
-
                 layers_temperature_df.iloc[time_step][layer] = temperature
 
             outlet_temp_df.iloc[time_step]["T_out"] = Test.T_out
 
         elif 60*60*1 <= time_step < 60*60*2: 
-
             setattr(Test, "T_in", 35)
             setattr(Test, "mdot_in", -0.4)
 
             Test.step_single()
 
             for layer, temperature in Test.Layers_temperature_dict.items():
-
                 layers_temperature_df.iloc[time_step][layer] = temperature
 
             outlet_temp_df.iloc[time_step]["T_out"] = Test.T_out
 
-
         elif 60*60*2 <= time_step < 60*60*3: 
-
             setattr(Test, "T_in", 90)
             setattr(Test, "mdot_in", 0.7)
 
             Test.step_single()
 
             for layer, temperature in Test.Layers_temperature_dict.items():
-
                 layers_temperature_df.iloc[time_step][layer] = temperature
 
             outlet_temp_df.iloc[time_step]["T_out"] = Test.T_out
 
         else:
-
             setattr(Test, "mdot_in", 0.0)
 
             Test.step_single()
 
             for layer, temperature in Test.Layers_temperature_dict.items():
-
                 layers_temperature_df.iloc[time_step][layer] = temperature
 
             outlet_temp_df.iloc[time_step]["T_out"] = Test.T_out
@@ -374,7 +347,6 @@ if __name__ == '__main__':
 
     for layer in range(len(Test.Layers_list)):
         plt.plot(layers_temperature_df[layer], label='Layer {0}'.format(layer))
-
 
     plt.legend()
     plt.xlabel('Time - [seconds]')
@@ -394,6 +366,6 @@ if __name__ == '__main__':
     plt.grid()
     plt.tight_layout()
 
-plt.ion()
-plt.show()
+    plt.ion()
+    plt.show()
 

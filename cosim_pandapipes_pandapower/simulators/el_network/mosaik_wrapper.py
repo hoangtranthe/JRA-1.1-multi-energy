@@ -1,11 +1,8 @@
-"""
-This module implements the mosaik sim API for pandapower.
-
-Two options exist to run a power flow:
-
-1. Time series power flow calculation with internal time propgation happens through the gird files
-2. static power flow calculation that could be propagated in time through other simulators connected to Mosaik
-"""
+# Copyright (c) 2021 by ERIGrid 2.0. All rights reserved.
+# Use of this source code is governed by LGPL-2.1.
+'''
+This is a modified version of the Mosaik Pandapower module.
+'''
 
 import logging
 import os
@@ -15,7 +12,7 @@ from .simulator import Pandapower, make_eid
 
 logger = logging.getLogger('pandapower.mosaik')
 
-meta = {
+META = {
     'models': {
         'Grid': {
             'public': True,
@@ -117,7 +114,7 @@ meta = {
 
 class ElectricNetworkSimulator(mosaik_api.Simulator):
     def __init__(self):
-        super(ElectricNetworkSimulator, self).__init__(meta)
+        super(ElectricNetworkSimulator, self).__init__(META)
         self.step_size = None
         self.simulator=Pandapower()
         self.time_step_index=0
@@ -126,7 +123,6 @@ class ElectricNetworkSimulator(mosaik_api.Simulator):
         #gen ,sgen, ext_grid
         #For all other bus elements the signing is based on the consumer viewpoint
         # (positive active power means power consumption):bus, load
-
 
         self._entities = {}
         self._relations = []  # List of pair-wise related entities (IDs)
@@ -187,7 +183,6 @@ class ElectricNetworkSimulator(mosaik_api.Simulator):
 
     def step(self, time, inputs):
 
-
         for eid, attrs in inputs.items():
             idx = self._entities[eid]['idx']
             etype = self._entities[eid]['etype']
@@ -199,14 +194,10 @@ class ElectricNetworkSimulator(mosaik_api.Simulator):
 
             self.simulator.set_inputs(etype, idx, attrs, static,)
 
-
-
         if self.mode == 'pf_timeseries' and not bool(inputs):
             self.simulator.powerflow_timeseries(self.time_step_index)
         elif self.mode == 'pf':
             self.simulator.powerflow()
-
-
 
         self._cache = self.simulator.get_cache_entries()
 
@@ -226,7 +217,6 @@ class ElectricNetworkSimulator(mosaik_api.Simulator):
                 data.setdefault(eid, {})[attr] = val
 
         return data
-
 
 def main():
     mosaik_api.start_simulation(ElectricNetworkSimulator(), 'The mosaik pandapower adapter')

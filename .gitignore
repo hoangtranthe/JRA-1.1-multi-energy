@@ -13,3 +13,7 @@ __pycache__/
 
 # Ignore test results
 pandapipes_standalone/test/results.csv
+
+# Ignore results images.
+*.png
+*.pdf

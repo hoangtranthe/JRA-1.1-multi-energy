@@ -88,8 +88,16 @@ BINS_LINE_LOADING = [
     round(i*5, 2) for i in range(30)
 ]
 
-BINS_TANK_TEMPERATURE = [
+BINS_TANK_TEMPERATURE_AVG = [
     round(50 + i*.25, 2) for i in range(40)
+]
+
+BINS_TANK_TEMPERATURE_MAX = [
+    round(64 + i*.25, 2) for i in range(40)
+]
+
+BINS_HEAT_GENERATION = [
+    round(i*5, 2) for i in range(22)
 ]
 
 SHOW_PLOTS = False
@@ -198,6 +206,8 @@ def plot_results_compare(
         plt.show()
     plt.close()
 
+    return (attr_type1.sum(), attr_type2.sum())
+
 
 if __name__ == '__main__':
     # Retrieve results for simulation with voltage control enabled.
@@ -224,7 +234,7 @@ if __name__ == '__main__':
         'ts_ctrl_disabled.png', SHOW_PLOTS, FIG_TYPE
         )
 
-    # Compare voltage levels fur bus 1.
+    # Compare voltage levels for bus 1.
     plot_results_compare(
         'Bus_1_0', 'vm_pu', 'voltage in p.u.',
         'ctrl disabled', dict_results_ctrl_disabled,
@@ -232,7 +242,7 @@ if __name__ == '__main__':
         'voltage_levels_bus1', BINS_BUS_VOLTAGE, SHOW_PLOTS, FIG_TYPE
         )
 
-    # Compare voltage levels fur bus 2.
+    # Compare voltage levels for bus 2.
     plot_results_compare(
         'Bus_2_0', 'vm_pu', 'voltage in p.u.',
         'ctrl disabled', dict_results_ctrl_disabled,
@@ -240,7 +250,7 @@ if __name__ == '__main__':
         'voltage_levels_bus2', BINS_BUS_VOLTAGE, SHOW_PLOTS, FIG_TYPE
         )
 
-    # Compare line loadings fur line 1.
+    # Compare line loadings for line 1.
     plot_results_compare(
         'LV_Line_0-1_0', 'loading_percent', 'line loading in %',
         'ctrl disabled', dict_results_ctrl_disabled,
@@ -248,7 +258,7 @@ if __name__ == '__main__':
         'loadings_line1', BINS_LINE_LOADING, SHOW_PLOTS, FIG_TYPE
         )
 
-    # Compare line loadings fur line 1.
+    # Compare line loadings for line 2.
     plot_results_compare(
         'LV_Line_1-2_0', 'loading_percent', 'line loading in %',
         'ctrl disabled', dict_results_ctrl_disabled,
@@ -256,10 +266,31 @@ if __name__ == '__main__':
         'loadings_line2', BINS_LINE_LOADING, SHOW_PLOTS, FIG_TYPE
         )
 
-    # Compare line loadings fur line 1.
+    # Average tank temperature.
     plot_results_compare(
         'StratifiedWaterStorageTank_0', 'T_avg', 'average temperature in °C',
         'ctrl disabled', dict_results_ctrl_disabled,
         'ctrl enabled', dict_results_ctrl_enabled,
-        'tank_temperature', BINS_TANK_TEMPERATURE, SHOW_PLOTS, FIG_TYPE
+        'tank_temperature_avg', BINS_TANK_TEMPERATURE_AVG, SHOW_PLOTS, FIG_TYPE
         )
+
+    # Maximum tank temperature.
+    plot_results_compare(
+        'StratifiedWaterStorageTank_0', 'T_hot', 'maximum temperature in °C',
+        'ctrl disabled', dict_results_ctrl_disabled,
+        'ctrl enabled', dict_results_ctrl_enabled,
+        'tank_temperature_max', BINS_TANK_TEMPERATURE_MAX, SHOW_PLOTS, FIG_TYPE
+        )
+
+    # Compare heat generation of heat pump.
+    (hp_sum_q_kw_ctrl_disabled, hp_sum_q_kw_ctrl_enabled) = \
+        plot_results_compare(
+            'heatpump_0', 'P_effective', 'heat generation in kW',
+            'ctrl disabled', dict_results_ctrl_disabled,
+            'ctrl enabled', dict_results_ctrl_enabled,
+            'heat_pump_gen', BINS_HEAT_GENERATION, SHOW_PLOTS, FIG_TYPE
+            )
+
+    print('heat pump P_effective:')
+    print('\tSUM ctrl disabled: {:.2f}'.format(hp_sum_q_kw_ctrl_disabled))
+    print('\tSUM ctrl enabled: {:.2f}'.format(hp_sum_q_kw_ctrl_enabled))

@@ -43,6 +43,12 @@ PLOT_DICT = {
             'FHctrl_0.state',
         ]
     ],
+    'flex heat controller HP mdot out': [
+        'HP mdot out',
+        [
+            'FHctrl_0.mdot_HP_out',
+        ]
+    ],
     'voltage controller': [
         'setpoint in kW',
         [
@@ -96,7 +102,7 @@ BINS_TANK_TEMPERATURE_MAX = [
     round(64 + i*.25, 2) for i in range(40)
 ]
 
-BINS_HEAT_GENERATION = [
+BINS_HP_POWER_CONSUMPTION = [
     round(i*5, 2) for i in range(22)
 ]
 
@@ -282,15 +288,15 @@ if __name__ == '__main__':
         'tank_temperature_max', BINS_TANK_TEMPERATURE_MAX, SHOW_PLOTS, FIG_TYPE
         )
 
-    # Compare heat generation of heat pump.
-    (hp_sum_q_kw_ctrl_disabled, hp_sum_q_kw_ctrl_enabled) = \
+    # Compare power consumption of heat pump.
+    (hp_sum_p_kw_ctrl_disabled, hp_sum_p_kw_ctrl_enabled) = \
         plot_results_compare(
             'heatpump_0', 'P_effective', 'heat generation in kW',
             'ctrl disabled', dict_results_ctrl_disabled,
             'ctrl enabled', dict_results_ctrl_enabled,
-            'heat_pump_gen', BINS_HEAT_GENERATION, SHOW_PLOTS, FIG_TYPE
+            'heat_pump_power', BINS_HP_POWER_CONSUMPTION, SHOW_PLOTS, FIG_TYPE
             )
 
     print('heat pump P_effective:')
-    print('\tSUM ctrl disabled: {:.2f}'.format(hp_sum_q_kw_ctrl_disabled))
-    print('\tSUM ctrl enabled: {:.2f}'.format(hp_sum_q_kw_ctrl_enabled))
+    print('\tSUM ctrl disabled: {:.2f}'.format(hp_sum_p_kw_ctrl_disabled))
+    print('\tSUM ctrl enabled: {:.2f}'.format(hp_sum_p_kw_ctrl_enabled))

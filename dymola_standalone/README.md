@@ -1,2 +1,0 @@
-# Dymola thermal network model
-

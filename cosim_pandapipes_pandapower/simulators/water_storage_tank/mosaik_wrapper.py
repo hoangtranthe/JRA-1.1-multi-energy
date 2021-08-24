@@ -28,7 +28,7 @@ META = {
 
 class StratifiedWaterStorageTankSimulator(Simulator):
     '''
-    Models a district-integrated heat pump (one entity = one heat pump).
+    Models a stratified water storage tank.
     '''
 
     step_size = 10

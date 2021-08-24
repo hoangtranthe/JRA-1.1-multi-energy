@@ -13,7 +13,9 @@ import datetime
 import logging
 import sys
 
-logging.basicConfig(filename='cosimulation_logging.log', filemode='w', level=logging.DEBUG)
+logging.basicConfig(filename='cosimulation_logging.log', filemode='w', level=logging.INFO)
+logger = logging.getLogger(__name__)
+logger.info('Initialized logger.')
 
 scenario_start_time = t_time.time()
 
@@ -54,7 +56,7 @@ PHYSICAL_STEP_SIZE = STEP_SIZE  # Physical evolution [s]
 CONTROL_STEP_SIZE = STEP_SIZE  # Flow control [s]
 PIPEFLOW_STEP_SIZE = STEP_SIZE
 OPTIMIZER_STEP_SIZE = STEP_SIZE  # Used for MPC controller [s]
-END = 12 * 60 * 60
+END = 72 * 60 * 60
 
 # # Set which day we are looking at.
 consumer_demand_series = pd.read_csv('./resources/heat/tc08ts01/distorted_heat_demand_load_profiles.csv', index_col=0, parse_dates=True)
@@ -139,7 +141,7 @@ entities['dh_network'] = simulators['dh_network'].DHNetwork(
     T_supply_grid=75,
     P_grid_bar=6,
     T_amb=8,
-    dynamic_temp_flow_enabled=False,
+    dynamic_temp_flow_enabled=True,
 )
 
 # #  Heat consumer - Heat exchanger (HEX) # #
@@ -196,7 +198,7 @@ entities['hp'] = simulators['hp'].ConstantTcondHP(
 
 # # Simple controller # #
 entities['simple_controller'] = simulators['simple_controller'].SimpleFlexHeatController(
-    voltage_control_enabled=True
+    voltage_control_enabled=False
 )
 
 # # Voltage controller # #

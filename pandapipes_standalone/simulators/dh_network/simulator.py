@@ -19,6 +19,7 @@ import pandapipes.control.run_control as run_control
 from pandapower import pandapowerNet
 from .valve_control import CtrlValve
 import pandapipes.plotting as plot
+import logging
 from scipy.interpolate import interp1d
 
 # Do not print python UserWarnings
@@ -92,10 +93,13 @@ class DHNetwork:
 	source: list = None
 	circ_pump: list = None
 
+	# Logging
+	logger: logging.Logger = field(init=False)
+
 	def __post_init__(self):
 		self._create_network()
 		self._init_output_store()
-		warnings.filterwarnings("ignore", message="Pipeflow converged, however, the results are phyisically incorrect as pressure is negative at nodes*")
+		self._init_logging()
 
 	def _init_output_store(self):
 		# Init output storage
@@ -106,6 +110,15 @@ class DHNetwork:
 
 		else:
 			self.store['static'] = {}
+
+	def _init_logging(self):
+		if self.enable_logging:
+			self.logger = logging.getLogger(__name__)
+			self.logger.setLevel(logging.INFO)
+			self.logger.info(f'DH Network Simulator: Logging (level="{logging.getLevelName(self.logger.level)}") enabled.')
+
+		# Ignore filter warning of hydraulic dynamics
+		warnings.filterwarnings("ignore", message="Pipeflow converged, however, the results are phyisically incorrect as pressure is negative at nodes*")
 
 	def step_single(self, time):
 		j = self.junction
@@ -153,8 +166,7 @@ class DHNetwork:
 
 		except:
 			# Throw UserWarning
-			warnings.warn(f'ControllerNotConverged: Maximum number of iterations per controller is reached at time t={self.cur_t}.', UserWarning)
-
+			self.logger.info(f'ControllerNotConverged: Maximum number of iterations per controller is reached at time t={self.cur_t}.')
 
 	def _run_static_pipeflow(self):
 		pp.pipeflow(self.net, transient=False, mode="all", max_iter=100, run_control=True, heat_transfer=True)

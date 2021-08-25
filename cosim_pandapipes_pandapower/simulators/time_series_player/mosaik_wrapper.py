@@ -1,42 +1,28 @@
 # Copyright (c) 2021 by ERIGrid 2.0. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
-'''
-Model of the voltage controller.
-'''
 
 from itertools import count
-from .simulator import VoltageController
+from .simulator import TimeSeriesPlayer
 from mosaik_api import Simulator
 from typing import Dict
 
 META = {
     'models': {
-        'VoltageController': {
+        'TimeSeriesPlayer': {
             'public': True,
             'params': [
-                'delta_vm_upper_pu',
-                'delta_vm_lower_pu_hp_on',
-                'delta_vm_lower_pu_hp_off',
-                'delta_vm_deadband',
-                'hp_p_el_mw_rated',
-                'hp_p_el_mw_min',
-                'hp_p_el_mw_step',
-                'hp_operation_steps_min',
-                'k_p',
+                't_start', 'series', 'fieldname', 'interp_method', 'scale'
             ],
             'attrs': [
-                # Inputs
-                'vmeas_pu',
                 # Output
-                'hp_p_el_kw_setpoint',
-                'hp_p_el_mw_setpoint'
+                'out',
             ],
         },
     },
 }
 
 
-class VoltageControlSimulator(Simulator):
+class TimeSeriesPlayerSim(Simulator):
 
     step_size = 10
     eid_prefix = ''
@@ -47,12 +33,12 @@ class VoltageControlSimulator(Simulator):
 
         # Per-entity dicts
         self.eid_counters = {}
-        self.simulators: Dict[VoltageController] = {}
+        self.simulators: Dict[str, TimeSeriesPlayer] = {}
         self.entityparams = {}
-        self.output_vars = {'hp_p_el_kw_setpoint','hp_p_el_mw_setpoint'}
-        self.input_vars = {'vmeas_pu'}
+        self.output_vars = {'out'}
+        self.input_vars = {}
 
-    def init(self, sid, step_size=10, eid_prefix="VoltageController"):
+    def init(self, sid, step_size = 10, eid_prefix = 'TimeSeriesPlayer'):
 
         self.step_size = step_size
         self.eid_prefix = eid_prefix
@@ -64,11 +50,10 @@ class VoltageControlSimulator(Simulator):
         entities = []
 
         for _ in range(num):
-
             eid = '%s_%s' % (self.eid_prefix, next(counter))
 
             self.entityparams[eid] = model_params
-            esim = VoltageController(**model_params)
+            esim = TimeSeriesPlayer(step_size = self.step_size,**model_params)
 
             self.simulators[eid] = esim
 
@@ -79,20 +64,10 @@ class VoltageControlSimulator(Simulator):
     def step(self, time, inputs):
         for eid, esim in self.simulators.items():
             data = inputs.get(eid, {})
+            if not 0 == len(data):
+                RuntimeError('TimeSeriesPlayerSimulator has no input attributes.')
 
-            for attr, incoming in data.items():
-                if attr in self.input_vars:
-
-                    if 1 != len(incoming):
-                        raise RuntimeError('VoltageControlSimulator does not support multiple inputs')
-
-                    newval = list(incoming.values())[0]
-                    setattr(esim, attr, newval)
-
-                else:
-                    raise AttributeError(f"VoltageControlSimulator {eid} has no input attribute {attr}.")
-
-            esim.step_single(time)
+            esim.step_single(t=time)
 
         self.last_time = time
 
@@ -109,10 +84,12 @@ class VoltageControlSimulator(Simulator):
                 if attr in self.input_vars or attr in self.output_vars:
                     mydata[attr] = getattr(esim, attr)
                 else:
-                    raise AttributeError(f"VoltageControlSimulator {eid} has no attribute {attr}.")
+                    raise AttributeError(f"TimeSeriesPlayerSimulator {eid} has no attribute {attr}.")
             data[eid] = mydata
+
         return data
 
 
 if __name__ == '__main__':
-    test = VoltageControlSimulator()
+
+    test = TimeSeriesPlayerSimulator()

@@ -1,42 +1,33 @@
 # Copyright (c) 2021 by ERIGrid 2.0. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be found in the LICENSE file.
 '''
-Model of the voltage controller.
+Model of the heat exchanger substation at the consumer side.
 '''
 
 from itertools import count
-from .simulator import VoltageController
+from .simulator import HEXConsumer
 from mosaik_api import Simulator
 from typing import Dict
 
 META = {
     'models': {
-        'VoltageController': {
+        'HEXConsumer': {
             'public': True,
             'params': [
-                'delta_vm_upper_pu',
-                'delta_vm_lower_pu_hp_on',
-                'delta_vm_lower_pu_hp_off',
-                'delta_vm_deadband',
-                'hp_p_el_mw_rated',
-                'hp_p_el_mw_min',
-                'hp_p_el_mw_step',
-                'hp_operation_steps_min',
-                'k_p',
+                'T_return_target', 'P_heat', 'mdot_hex_in', 'mdot_hex_out',
             ],
             'attrs': [
-                # Inputs
-                'vmeas_pu',
+                # Input
+                'P_heat', 'T_supply',
                 # Output
-                'hp_p_el_kw_setpoint',
-                'hp_p_el_mw_setpoint'
+                'mdot_hex_out', 'mdot_hex_in', 'T_return'
             ],
         },
     },
 }
 
 
-class VoltageControlSimulator(Simulator):
+class HEXConsumerSimulator(Simulator):
 
     step_size = 10
     eid_prefix = ''
@@ -47,12 +38,12 @@ class VoltageControlSimulator(Simulator):
 
         # Per-entity dicts
         self.eid_counters = {}
-        self.simulators: Dict[VoltageController] = {}
+        self.simulators: Dict[HEXConsumer] = {}
         self.entityparams = {}
-        self.output_vars = {'hp_p_el_kw_setpoint','hp_p_el_mw_setpoint'}
-        self.input_vars = {'vmeas_pu'}
+        self.output_vars = {'mdot_hex_out', 'mdot_hex_in', 'T_return'}
+        self.input_vars = {'P_heat', 'T_supply'}
 
-    def init(self, sid, step_size=10, eid_prefix="VoltageController"):
+    def init(self, sid, step_size=10, eid_prefix="HEXConsumer"):
 
         self.step_size = step_size
         self.eid_prefix = eid_prefix
@@ -68,7 +59,7 @@ class VoltageControlSimulator(Simulator):
             eid = '%s_%s' % (self.eid_prefix, next(counter))
 
             self.entityparams[eid] = model_params
-            esim = VoltageController(**model_params)
+            esim = HEXConsumer(**model_params)
 
             self.simulators[eid] = esim
 
@@ -82,17 +73,17 @@ class VoltageControlSimulator(Simulator):
 
             for attr, incoming in data.items():
                 if attr in self.input_vars:
-
                     if 1 != len(incoming):
-                        raise RuntimeError('VoltageControlSimulator does not support multiple inputs')
+                        raise RuntimeError('HEXConsumerSimulator does not support multiple inputs')
 
                     newval = list(incoming.values())[0]
                     setattr(esim, attr, newval)
 
                 else:
-                    raise AttributeError(f"VoltageControlSimulator {eid} has no input attribute {attr}.")
+                    raise AttributeError(f"HEXConsumerSimulator {eid} has no input attribute {attr}.")
 
-            esim.step_single(time)
+            for _ in range(time - self.last_time):
+                esim.step_single()
 
         self.last_time = time
 
@@ -109,10 +100,10 @@ class VoltageControlSimulator(Simulator):
                 if attr in self.input_vars or attr in self.output_vars:
                     mydata[attr] = getattr(esim, attr)
                 else:
-                    raise AttributeError(f"VoltageControlSimulator {eid} has no attribute {attr}.")
+                    raise AttributeError(f"HEXConsumerSimulator {eid} has no attribute {attr}.")
             data[eid] = mydata
         return data
 
 
 if __name__ == '__main__':
-    test = VoltageControlSimulator()
+    test = HEXConsumerSimulator()

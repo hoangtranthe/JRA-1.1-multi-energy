@@ -139,7 +139,7 @@ entities['dh_network'] = simulators['dh_network'].DHNetwork(
     T_supply_grid=75,
     P_grid_bar=6,
     T_amb=8,
-    dynamic_temp_flow_enabled=False
+    dynamic_temp_flow_enabled=True
 )
 
 # #  Heat consumer - Heat exchanger (HEX) # #
@@ -183,12 +183,12 @@ entities['storage_tank'] = simulators['storage_tank'].WaterStorageTank(
 
 # # Heat pump
 entities['hp'] = simulators['hp'].ConstantTcondHP(
-    P_rated=100.0,
+    P_rated=150.0,
     lambda_comp=0.2,
     P_0=0.3,
     eta_sys=0.5,
     eta_comp=0.7,
-    T_evap_out_min=20,
+    T_evap_out_min=15,
     dt=STEP_SIZE,
     T_cond_out_target=HP_TEMP_COND_OUT_TARGET,  # degC
     opmode='constant_T_out',  # Constant output power at condenser

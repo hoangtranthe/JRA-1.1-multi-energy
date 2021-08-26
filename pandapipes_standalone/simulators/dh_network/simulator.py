@@ -122,7 +122,7 @@ class DHNetwork:
         self._set_output_variables()
 
     def _set_output_variables(self):
-        t_k = self.dhn_sim.get_value_of_network_component(name='n3r',
+        t_k = self.dhn_sim.get_value_of_network_component(name='n3r_tank',
                                                     type='junction',
                                                     parameter='t_k')
         self.T_return_tank = round((t_k - self.T_K0), 2)

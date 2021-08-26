@@ -59,7 +59,7 @@ plt_dict_network = {
     'mdot': ['mdot_cons1', 'mdot_cons1_set',
              'mdot_cons2', 'mdot_cons2_set',
              'mdot_grid', 'mdot_grid_set',
-             'mdot_tank_in', 'mdot_tank_in_set'],
+             'mdot_tank_in', 'mdot_tank_in_set','state'],
     # 'voltage_control': [
     #          'hp_on_request', 'hp_off_request', 'state'
     #          ],

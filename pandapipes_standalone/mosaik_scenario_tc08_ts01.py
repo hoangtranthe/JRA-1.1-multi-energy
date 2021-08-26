@@ -139,7 +139,7 @@ entities['dh_network'] = simulators['dh_network'].DHNetwork(
     T_supply_grid=75,
     P_grid_bar=6,
     T_amb=8,
-    dynamic_temp_flow_enabled=True,
+    dynamic_temp_flow_enabled=False
 )
 
 # #  Heat consumer - Heat exchanger (HEX) # #
